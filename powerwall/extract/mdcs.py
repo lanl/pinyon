@@ -31,17 +31,6 @@ class EntryFlattener(EmbeddedDocument):
     description = StringField(required=False)
     """Description of this data column """
 
-    def __init__(self, name, description=None):
-        """
-        :param name: string, name of data
-        :param description: string, description of data
-        """
-        super(EntryFlattener, self).__init__()
-
-        # Set values
-        self.name = name
-        self.description = description
-
     def extract_data(self, record):
         """Extract a data from an MDCS data record
         
@@ -58,32 +47,7 @@ class ExtractorFlattener(EntryFlattener):
     
     location = ListField(StringField(), required=True)
     """Name of the field to extract"""
-    
-    def __init__(self, location, name=None, description=None):
-        """Create a new record extractor
-        
-        The data location should be specified by defining the entire
-        path to the desired record. For example, 
-        x['level1']['level2']['value'] should be listed as 
-        ['level1','level2','value']
-        
-        If `name` and `description` are not provided, they will be 
-        automatically generated
-        
-        Input:
-            location - list, path to the record
-            name - string, name for this data
-            description - string, description of this object
-        """
 
-        super(ExtractorFlattener, self).__init__(None, description)
-
-        # Unless specified, automatically generate name and description
-        if name is None:
-            name = "_".join(location)
-        self.name = name
-        self.location = location
-        
     def extract_data(self, record):
         # Iteratively move through data hierarchy
         current = record
@@ -106,24 +70,6 @@ class PhysicalQuantityExtractorFlattener(ExtractorFlattener):
     
     units = StringField(required=False)
     """Desired units for the property value"""
-    
-    def __init__(self, location, units=None, name=None, description=None):
-        """Create a new physical quantity extractor
-        
-        See `ExtractorFlattener` for a description of location. For this 
-        class it should point to a `physical-quantity-type` field
-        
-        Input:
-            list - list, path to the record
-            units - string, desired units of the record
-            name - string, name for this data
-            description - string, description of this object
-        """
-        super(PhysicalQuantityExtractorFlattener, self).__init__(location, name=name, description=description)
-        
-        # Set the units, if defined
-        if units:
-            self.units = units
             
     def extract_data(self, record):
         quantity = super(PhysicalQuantityExtractorFlattener, self).extract_data(record)
@@ -170,23 +116,6 @@ class ElementFractionFlattener(ExtractorFlattener):
 
     fraction=BooleanField(required=True)
     """Whether to express amount in fraction or percentage"""
-
-    def __init__(self, location, element, mass=True, fraction=False, name=None, description=None):
-        """
-        Inputs:
-            :param location: list, path to composition to be parsed
-            :param element: string, name of element to be retrieved
-            :param mass: boolean, whether to express in mass proportion
-            :param fraction: boolean, whether to print element fractions or percentages
-            :param name: string, name of this value
-            :param description: string, description of this value
-        """
-        super(ElementFractionFlattener,self).__init__(location, name, description)
-
-        # Store the element and desired units
-        self.element = element
-        self.mass_units = mass
-        self.fraction = fraction
 
     @staticmethod
     def convert_composition(comp, to_mole):
@@ -267,24 +196,6 @@ class CompositionPrinterFlattener(ExtractorFlattener):
     print_units=BooleanField(required=True)
     """Whether to print at% or wt%"""
 
-    def __init__(self, location, mole_percent=True, base_element=None, print_units=False, name=None, description=None):
-        """
-        :param location: list, path to the composition data
-        :param mole_percent: boolean, whether to print in mole fraction. If `None`, use the format specified
-            in the composition object
-        :param base_element: string, symbol of element to use as a base element. If not `None`,
-            compositions will be written as <base element>-[<fraction><element>]* (e.g., U-4.5Nb).
-        :param print_units: boolean, Whether to include units in the print out (e.g., U-4.5wt%Nb vs. U-4.5Nb)
-        :param name: string, name of this data
-        :param description: string, description of this data
-        """
-        super(CompositionPrinterFlattener,self).__init__(location, name, description)
-
-        # Define the settings
-        self.mole_percent=mole_percent
-        self.base_element=base_element
-        self.print_units=print_units
-
     def extract_data(self, record):
         # Get composition record
         comp_record = super(CompositionPrinterFlattener, self).extract_data(record)
@@ -342,31 +253,6 @@ class MDCSExtractor(BaseExtractor):
         
     flatteners = ListField(EmbeddedDocumentField(EntryFlattener))
     """Tools used to flatten records from MDCS into a table"""
-    
-    def __init__(self, name, host, user, pswd, template, **kwargs):
-        """Initialize a MDCS data extractor
-
-        :param host: string, URL of MDCS host
-        :param username: string, username for MDCS server
-        :param pswd: string, password for user account. WARNING: This is stored in plaintext [for now at least]
-        :param template: string, name of the schema template
-        """
-        super(MDCSExtractor, self).__init__(None, **kwargs)
-        
-        # Define settings
-        self.name = name
-        self.host = host
-        self.username = user
-        self.password = pswd
-        self.template = template
-        
-        # Add in default flatteners
-        self.flatteners.append(
-            ExtractorFlattener(['title'], 'Title', 'Document title')
-        )
-        self.flatteners.append(
-            ExtractorFlattener(['_id'], 'ID', 'Document ID')
-        )
         
     def get_data(self):
         """Extract data from MDCS and flatten it

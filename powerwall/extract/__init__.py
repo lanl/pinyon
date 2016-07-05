@@ -1,9 +1,9 @@
 """This module contains code for extracting data 
 from various data repositories"""
+from mongoengine import Document, StringField
 
 __author__ = 'Logan Ward'
 
-from mongoengine import Document, StringField
 
 class BaseExtractor(Document):
     """Base class for extracting data from a certain resource"""
