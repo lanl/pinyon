@@ -1,0 +1,8 @@
+use powerwall
+db.createUser(
+{
+	user: "powerwall_user",
+	pwd: "powerwall_user",
+	roles: ["readWrite"]
+}
+)

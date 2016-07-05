@@ -1,0 +1,8 @@
+use admin
+db.createUser(
+{
+	user: "powerwall_admin",
+	pwd: "admin",
+	roles: [ { role: "userAdminAnyDatabase", db: "admin"},"backup","restore"]
+}
+)
