@@ -1,0 +1,65 @@
+<HardnessMeasurement>
+  <Hardness>
+    <measurement-type>rockwell a</measurement-type>
+    <measurement>
+      <value>64.6451278805</value>
+    </measurement>
+    <microindenter>false</microindenter>
+  </Hardness>
+  <DataSource>
+    <document-type>report</document-type>
+    <title>Mechanical Properties of Uranium-Base Niobium Alloys</title>
+    <author>
+      <given-name>Ross</given-name>
+      <surname>Jackson</surname>
+    </author>
+    <author>
+      <given-name>Joseph</given-name>
+      <surname>Boland</surname>
+    </author>
+    <publication-date>
+      <year>1971</year>
+      <month>--06</month>
+      <day>---17</day>
+    </publication-date>
+    <issue>RFP-1703</issue>
+    <URL>http://www.osti.gov/scitech/servlets/purl/4015824/</URL>
+    <text-bibliography>1971jac2</text-bibliography>
+  </DataSource>
+  <NominalComposition>
+    <quantityUnit>mass percent</quantityUnit>
+    <constituent>
+      <element>Nb</element>
+      <amount>4.5</amount>
+    </constituent>
+    <constituent>
+      <element>U</element>
+      <amount>95.5</amount>
+    </constituent>
+  </NominalComposition>
+  <AgingCondition>
+    <temperature>
+      <value>25</value>
+      <unit>degC</unit>
+    </temperature>
+    <time>
+      <value>1</value>
+      <unit>hr</unit>
+    </time>
+  </AgingCondition>
+  <Processing>
+    <solutionization>
+      <temperature>
+        <value>800</value>
+        <unit>degC</unit>
+      </temperature>
+      <time>
+        <value>1</value>
+        <unit>hr</unit>
+      </time>
+    </solutionization>
+    <quenching>
+      <cooling-method>Water Quenched</cooling-method>
+    </quenching>
+  </Processing>
+</HardnessMeasurement>
