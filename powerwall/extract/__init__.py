@@ -1,6 +1,7 @@
 """This module contains code for extracting data 
 from various data repositories"""
 from mongoengine import Document, StringField
+from .. import KnownClass
 
 __author__ = 'Logan Ward'
 
@@ -20,3 +21,9 @@ class BaseExtractor(Document):
             Panda's DataFrame object
         """
         raise NotImplementedError()
+
+    def save(self):
+        # Register the class with the "Known Object"
+        KnownClass.register_class(self)
+
+        return super(BaseExtractor, self).save()

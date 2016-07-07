@@ -7,6 +7,8 @@ extractor is specifically tailored to a certain data structure.
 """
 from __future__ import absolute_import
 import mdcs
+
+from powerwall import KnownClass
 from . import BaseExtractor
 from mongoengine.fields import *
 from mongoengine import EmbeddedDocument, Document
@@ -30,6 +32,12 @@ class EntryFlattener(EmbeddedDocument):
     
     description = StringField(required=False)
     """Description of this data column """
+
+    def __init__(self, *args, **kwargs):
+        super(EntryFlattener, self).__init__(*args, **kwargs)
+
+        # Register this object with Powerwall
+        KnownClass.register_class(self)
 
     def extract_data(self, record):
         """Extract a data from an MDCS data record

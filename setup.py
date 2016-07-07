@@ -18,6 +18,8 @@ setup(
         'pandas',
         'scipy',
         'xmltodict',
+        'pyramid',
+        'pyramid_chameleon',
     ],
     packages=find_packages(exclude=('tests', 'docs'))
 )
