@@ -1,6 +1,8 @@
 """This module contains code for extracting data 
 from various data repositories"""
+import pickle as pickle
 from mongoengine import Document, StringField
+
 from .. import KnownClass
 
 __author__ = 'Logan Ward'
@@ -8,22 +10,53 @@ __author__ = 'Logan Ward'
 
 class BaseExtractor(Document):
     """Base class for extracting data from a certain resource"""
-    meta={'allow_inheritance': True}
+    meta = {'allow_inheritance': True}
     
-    name=StringField(required=True)
+    name = StringField(required=True)
     """Name of the extractor"""
+
+    _data_cache = None
+    """Storage for DataFrame object generated during extraction"""
+
+    result = StringField(required=False)
+    """Storage for the pickled form of _data_cache"""
     
-    def get_data(self):
+    def get_data(self, ignore_cache=True):
         """Extract data from a certain resource, assemble
         data into a tabular format
         
         Output:
             Panda's DataFrame object
         """
+
+        # Check if the cache should be ignored
+        if ignore_cache:
+            self.result = None
+            self._data_cache = self._run_extraction()
+            return self._data_cache
+
+        # Either extract or use the cache
+        if self._data_cache is not None:
+            # Return cached object
+            pass
+        elif self.result is not None:
+            self._data_cache = pickle.loads(self.result)
+        else:
+            self._data_cache = self._run_extraction()
+        return self._data_cache
+
+    def _run_extraction(self):
+        """Actually perform the data extraction.
+
+        Not meant to be called directly by the user"""
         raise NotImplementedError()
 
     def save(self):
-        # Register the class with the "Known Object"
+        # Register the class
         KnownClass.register_class(self)
+
+        # If present, save pickled form of data
+        if self._data_cache is not None:
+            self.result = pickle.dumps(self._data_cache, 0)
 
         return super(BaseExtractor, self).save()

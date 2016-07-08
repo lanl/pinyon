@@ -262,12 +262,7 @@ class MDCSExtractor(BaseExtractor):
     flatteners = ListField(EmbeddedDocumentField(EntryFlattener))
     """Tools used to flatten records from MDCS into a table"""
         
-    def get_data(self):
-        """Extract data from MDCS and flatten it
-        
-        Output:
-            Pandas DataFrame containing all of the data"""
-        
+    def _run_extraction(self):
         # Get the schema ID for the data to be extracted
         schema_id = mdcs.templates.current_id(self.host,
                                               self.username,
