@@ -19,6 +19,11 @@ class BaseExtractor(Document):
     name = StringField(required=True, unique=True)
     """Name of the extractor"""
 
+    description = StringField(required=True)
+    """Description of the extractor.
+
+    Can use HTML formatting"""
+
     last_exported = DateTimeField()
     """Last time the data was pull from the resource"""
 

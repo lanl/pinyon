@@ -24,8 +24,9 @@ def main(global_config, **settings):
     config.add_static_view(name='static', path='powerwall:web/static')
 
     # Add in the routes
-    config.include('.home')
     config.include('.extract')
+    config.include('.home')
+    config.include('.toolchain')
 
     # Add in the views
     config.scan()

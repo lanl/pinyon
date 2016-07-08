@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ name }}</title>
+	<link rel="stylesheet" href="static/css/bootstrap.min.css"/>
+</head>
+<body>
+    <h1>{{ name }}</h1>
+
+    <p>{{ toolchain.description }}</p>
+
+    <p><a href="/toolchain/{{ name }}/run">Update Results</a></p>
+
+    <table>
+        <tr><th>Name</th><td>{{ toolchain.name }}</td></tr>
+        <tr><th>Type</th><td>{{ toolchain.__class__.__name__ }}</td></tr>
+    </table>
+
+    <h2>Extractor</h2>
+
+    <p>
+        <a href="/extractor/{{ toolchain.extractor.name }}/view">{{ toolchain.extractor.name }}</a>:
+        {{ toolchain.extractor.description | safe }}
+    </p>
+
+</body>
+</html>
