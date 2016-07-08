@@ -5,10 +5,12 @@
 	<link rel="stylesheet" href="static/css/bootstrap.min.css"/>
 </head>
 <body>
-    <h1>Available Extractors</h1>
+    <h1>Welcome to Powerwall!</h1>
+
+    <h2>Current Tool Chains</h2>
     <ul>
         {% for name in names %}
-            <li><a href="extractor/{{ name }}/view">{{ name }}</a></li>
+            <li><a href="toolchain/{{ name }}/view">{{ name }}</a></li>
         {%  endfor %}
     </ul>
 </body>
