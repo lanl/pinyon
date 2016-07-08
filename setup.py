@@ -22,6 +22,7 @@ setup(
         'pyramid_chameleon',
 	'pyramid_debugtoolbar',
         'scipy',
+	'webtest',
 	'xmltodict',
     ],
     packages=find_packages(exclude=('tests', 'docs'))

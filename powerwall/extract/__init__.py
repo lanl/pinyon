@@ -3,10 +3,11 @@ from various data repositories"""
 import pickle as pickle
 
 import datetime
-from mongoengine import Document, StringField
-from mongoengine.fields import DateTimeField
+from mongoengine import Document
+from mongoengine.fields import DateTimeField, DictField, StringField
 
 from .. import KnownClass
+from pandas import read_excel
 
 __author__ = 'Logan Ward'
 
@@ -65,6 +66,22 @@ class BaseExtractor(Document):
 
         # If present, save pickled form of data
         if self._data_cache is not None:
-            self.result = pickle.dumps(self._data_cache, 0)
+            self.result = pickle.dumps(self._data_cache)
 
         return super(BaseExtractor, self).save()
+
+
+class ExcelExtractor(BaseExtractor):
+    """Extractor designed to pull data from excel files"""
+
+    path = StringField(required=True)
+    """Path to target Excel file"""
+
+    sheet = StringField(required=True)
+    """Name of target sheet in target file"""
+
+    import_options = DictField()
+    """Any options for the read_excel function of pandas"""
+
+    def _run_extraction(self):
+        return read_excel(self.path, self.sheet, **self.import_options)

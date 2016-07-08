@@ -10,13 +10,6 @@ class TutorialViewTests(unittest.TestCase):
     def tearDown(self):
         testing.tearDown()
 
-    def test_home(self):
-        from powerwall.web.home import home
-
-        request = testing.DummyRequest()
-        response = home(request)
-        self.assertEqual('Home View', response['name'])
-
         
 class TutorialFunctionalTests(unittest.TestCase):
     def setUp(self):
@@ -28,4 +21,4 @@ class TutorialFunctionalTests(unittest.TestCase):
 
     def test_home_page(self):
         res = self.testapp.get('/', status=200)
-        self.assertIn(b'Hi Home View', res.body)
+        self.assertIn(b'<h1>Welcome', res.body)
