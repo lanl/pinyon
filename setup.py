@@ -16,10 +16,13 @@ setup(
     install_requires=[
         'mongoengine',
         'pandas',
-        'scipy',
-        'xmltodict',
+	'pint',
+	'periodictable',
         'pyramid',
         'pyramid_chameleon',
+	'pyramid_debugtoolbar',
+        'scipy',
+	'xmltodict',
     ],
     packages=find_packages(exclude=('tests', 'docs'))
 )
