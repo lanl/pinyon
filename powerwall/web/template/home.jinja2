@@ -7,7 +7,9 @@
 <body>
     <h1>Available Extractors</h1>
     <ul>
-        <li tal:repeat="name names" tal:content="name"/>
+        {% for name in names %}
+            <li><a href="extractor/{{ name }}/view">{{ name }}</a></li>
+        {%  endfor %}
     </ul>
 </body>
 </html>

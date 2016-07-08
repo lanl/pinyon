@@ -18,13 +18,14 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     
     # Add in additional modules
-    config.include('pyramid_chameleon')
+    config.include('pyramid_jinja2')
     
     # Add in static directories
     config.add_static_view(name='static', path='powerwall:web/static')
 
     # Add in the routes
     config.include('.home')
+    config.include('.extract')
 
     # Add in the views
     config.scan()

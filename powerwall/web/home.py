@@ -3,7 +3,7 @@ from pyramid.view import view_config
 from ..extract import BaseExtractor
 
 
-@view_config(route_name='home', renderer='template/home.pt')
+@view_config(route_name='home', renderer='template/home.jinja2')
 def home(request):
     """Home page"""
 

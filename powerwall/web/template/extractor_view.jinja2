@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Extractor: {{ name }}</title>
+	<link rel="stylesheet" href="../static/css/bootstrap.min.css"/>
+</head>
+<body>
+    <h1>Extractor: {{ name }}</h1>
+
+    <p><strong>Name</strong>: {{ extractor.name }}</p>
+    <p><strong>Type</strong>: {{ extractor._cls }}</p>
+
+    <h2>Flatteners</h2>
+
+    <ul>
+        {% for flatt in extractor.flatteners %}
+            <li>{{ flatt.name }} - {{ flatt._cls }}</li>
+        {% endfor %}
+    </ul>
+
+
+    <h2>Data</h2>
+
+    {{ extractor.get_data().to_html() | safe }}
+
+</body>
+</html>
