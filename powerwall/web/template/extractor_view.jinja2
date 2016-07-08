@@ -2,19 +2,32 @@
 <html lang="en">
 <head>
     <title>Extractor: {{ name }}</title>
-	<link rel="stylesheet" href="../static/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="static/css/bootstrap.min.css"/>
 </head>
 <body>
     <h1>Extractor: {{ name }}</h1>
 
-    <p><strong>Name</strong>: {{ extractor.name }}</p>
-    <p><strong>Type</strong>: {{ extractor._cls }}</p>
+    <p><a href="/extractor/{{ name }}/run">Run Extractor</a></p>
+
+    <table>
+        <tr><th>Name</th><td>{{ extractor.name }}</td></tr>
+        <tr><th>Type</th><td>{{ extractor.__class__.__name__ }}</td></tr>
+        <tr><th>Last Exported</th><td>{{ extractor.last_exported }}</td></tr>
+    </table>
 
     <h2>Flatteners</h2>
 
     <ul>
         {% for flatt in extractor.flatteners %}
-            <li>{{ flatt.name }} - {{ flatt._cls }}</li>
+            <li>
+                <p>{{ flatt.name }} - {{ flatt.description }}
+                <table>
+                    <tr><th>Type</th><td>{{ flatt._cls }}</td></tr>
+                    {% for s,v in flatt._data.iteritems() if s not in ['name', 'description'] %}
+                        <tr><th>{{ s }}</th><td>{{ v | string }}</td></tr>
+                    {% endfor %}
+                </table>
+            </li>
         {% endfor %}
     </ul>
 

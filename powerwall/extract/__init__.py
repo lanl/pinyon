@@ -1,7 +1,10 @@
 """This module contains code for extracting data 
 from various data repositories"""
 import pickle as pickle
+
+import datetime
 from mongoengine import Document, StringField
+from mongoengine.fields import DateTimeField
 
 from .. import KnownClass
 
@@ -12,8 +15,11 @@ class BaseExtractor(Document):
     """Base class for extracting data from a certain resource"""
     meta = {'allow_inheritance': True}
     
-    name = StringField(required=True)
+    name = StringField(required=True, unique=True)
     """Name of the extractor"""
+
+    last_exported = DateTimeField()
+    """Last time the data was pull from the resource"""
 
     _data_cache = None
     """Storage for DataFrame object generated during extraction"""
@@ -33,6 +39,7 @@ class BaseExtractor(Document):
         if ignore_cache:
             self.result = None
             self._data_cache = self._run_extraction()
+            self.last_exported = datetime.datetime.now()
             return self._data_cache
 
         # Either extract or use the cache
@@ -43,6 +50,7 @@ class BaseExtractor(Document):
             self._data_cache = pickle.loads(self.result)
         else:
             self._data_cache = self._run_extraction()
+            self.last_exported = datetime.datetime.now()
         return self._data_cache
 
     def _run_extraction(self):
