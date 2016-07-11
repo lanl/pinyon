@@ -34,6 +34,18 @@
 
     <h2>Data</h2>
 
+     <p>
+        <form action="/extractor/{{ name }}/data">
+            Download as
+            <select name = "format">
+                {% for opt in format_options %}
+                    <option value="{{ opt }}">{{ opt }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Download</button>
+        </form>
+    </p>
+
     {{ extractor.get_data().to_html() | safe }}
 
 </body>
