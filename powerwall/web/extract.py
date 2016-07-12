@@ -13,6 +13,7 @@ class ExtractorViews:
     known_data_formats = {
         'csv': {'extension': 'csv','pandas': 'to_csv','kwargs': {'index' : False}},
         'excel': {'extension': 'xlsx', 'pandas': 'to_excel', 'kwargs': {'index': False}},
+        'pickle': {'extension': 'pkl', 'pandas': 'to_pickle', 'kwargs': {}},
     }
     """Data formats known by this class
 
@@ -76,9 +77,9 @@ class ExtractorViews:
         output_settings = self.known_data_formats[data_format]
 
         # Write the object
-        if data_format == 'excel':
+        if data_format in ['excel','pickle']:
             # Write to temp file, read it
-            fp, filename = mkstemp('.xlsx')
+            fp, filename = mkstemp(output_settings['extension'])
             getattr(extractor.get_data(), output_settings['pandas']) \
                 (filename, **output_settings['kwargs'])
             output_data = open(filename, 'r').read()
