@@ -22,7 +22,7 @@ class ToolChain(Document):
     Can include HTML formatting"""
 
     extractor = ReferenceField(BaseExtractor, required=True)
-    """Tool used to extact data from database"""
+    """Tool used to extract data from database"""
 
     def get_all_tools(self):
         """Get all `WorkflowTool` objects associated with this workflow"""

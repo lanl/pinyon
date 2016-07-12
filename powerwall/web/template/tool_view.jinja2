@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Tool: {{ tool.name }}</title>
+	<link rel="stylesheet" href="static/css/bootstrap.min.css"/>
+</head>
+<body>
+    <h1>Tool: {{ tool.name }}</h1>
+
+    <p>Part of the <a href="/toolchain/{{ tool.toolchain.name }}/view">{{ tool.toolchain.name }}</a> toolchain</p>
+
+    <p><a href="/tool/{{ name }}/run">Run Tool</a></p>
+
+    <table>
+        <tr><th>Name</th><td>{{ tool.name }}</td></tr>
+        <tr><th>Type</th><td>{{ tool.__class__.__name__ }}</td></tr>
+        <tr><th>Description</th><td>{{ tool.description }}</td></tr>
+        <tr><th>Last Run</th><td>{{ tool.last_run }}</td></tr>
+        {% if tool.previous_step %}
+            <tr><th>Previous Step</th><td><a href="/tool/{{ tool.previous_step.id }}/view">{{ tool.previous_step.name }}</a></td></tr>
+        {% endif %}
+    </table>
+
+    <h2>Settings</h2>
+
+    <ul>
+        <table>
+            {% for s,v in tool._data.iteritems()
+                    if s not in ['id', 'name', 'description', 'notes', 'last_run', 'toolchain', 'result', 'previous_step'] %}
+                <tr><th>{{ s }}</th><td>{{ v | string }}</td></tr>
+            {% endfor %}
+        </table>
+    </ul>
+
+    {% if tool.notes %}
+        <h2>Notes</h2>
+
+        <ul>
+            {% for note in tool.notes %}
+                <li>{{ note.note }} - {{ note.author }}, {{ note.edited }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if tool.last_run %}
+        <h2>Outputs</h2>
+
+        <p>Outputs from the tool. Download links provide the data in Python pickle format</p>
+
+        <ul>
+            {% for output in tool.run() %}
+                <li><a href="/tool/{{ name }}/output/{{ output }}">{{ output }}</a></li>
+            {% endfor %}
+        </ul>
+
+        <h2>Data</h2>
+
+         <p>
+            <form action="/tool/{{ name }}/data">
+                Download as
+                <select name = "format">
+                    {% for opt in format_options %}
+                        <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Download</button>
+            </form>
+        </p>
+
+        {{ tool.get_data().to_html() | safe }}
+    {% else %}
+        <strong>Not yet run.</strong>
+    {% endif %}
+
+</body>
+</html>

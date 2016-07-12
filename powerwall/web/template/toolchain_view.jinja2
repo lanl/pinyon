@@ -23,5 +23,18 @@
         {{ toolchain.extractor.description | safe }}
     </p>
 
+    <h2>Workflow</h2>
+
+    <table>
+        <tr><th>Name</th><th>Type</th><th>Last Run</th></tr>
+        {% for tool in toolchain.get_all_tools() %}
+            <tr>
+                <td><a href="/tool/{{ tool.id }}/view">{{ tool.name }}</td>
+                <td>{{ tool.__class__.__name__ }}</td>
+                <td>{{ tool.last_run }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
 </body>
 </html>
