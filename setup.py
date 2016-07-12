@@ -14,6 +14,7 @@ setup(
     #url='https://github.com/',
     license=license,
     install_requires=[
+	'cornice',
         'mongoengine',
         'pandas',
 	'pint',

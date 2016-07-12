@@ -1,35 +1,16 @@
 """Modules that manipulate a dataset"""
 
-from mongoengine import Document
 from mongoengine.fields import *
+
+from powerwall.utility import WorkflowTool
 
 __author__ = 'Logan Ward'
 
 
-class BaseTransformer(Document):
-    """Base module for all operations that modify a dataset
+class BaseTransformer(WorkflowTool):
+    """Operation that modifies a dataset"""
+    pass
 
-    These can be used for a multitude of purposes including filtering unwanted entries, transforming a variable to a
-    more useful form, etc. All methods must have two pieces of information: a name and a description that captures the
-    rationale for these states"""
-
-    meta={'allow_inheritance': True}
-
-    name=StringField(required=True, regex="^[^\\s+]*$")
-    """Name of this transformer.
-
-    Cannot have any whitespace"""
-
-    description=StringField(required=True)
-    """Description of this transformer"""
-
-    def apply_transform(self,data):
-        """Apply transformation on input dataset
-
-        Input / Output:
-            :param data: DataFrame, dataset to be transformed
-        """
-        raise NotImplementedError
 
 class FilterTransformer(BaseTransformer):
     """Get only entries that pass a certain query
@@ -41,5 +22,11 @@ class FilterTransformer(BaseTransformer):
     query=StringField(required=True)
     """Query used to define filter"""
 
-    def apply_transform(self,data):
-        data.query(self.query, inplace=True)
+    def _run(self, data, inputs):
+        return data.query(self.query), dict(inputs)
+
+
+class JupyterNotebookTransformer(BaseTransformer):
+    """Uses Jupyter notebook to perform a certain optimization step"""
+
+    notebook = BinaryField(required=True)
