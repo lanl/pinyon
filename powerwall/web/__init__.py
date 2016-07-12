@@ -19,6 +19,7 @@ def main(global_config, **settings):
     
     # Add in additional modules
     config.include('pyramid_jinja2')
+    config.include('cornice')
     
     # Add in static directories
     config.add_static_view(name='static', path='powerwall:web/static')
@@ -27,9 +28,13 @@ def main(global_config, **settings):
     config.include('.extract')
     config.include('.home')
     config.include('.toolchain')
+    config.include('.tool')
 
     # Add in the views
     config.scan()
+
+    # San the REST interface
+    config.scan('.rest')
 
     # Render the web server
     return config.make_wsgi_app()
