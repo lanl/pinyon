@@ -8,10 +8,11 @@ from tempfile import mkstemp
 from powerwall.extract import BaseExtractor
 
 
-class ExtractorViews:
+class DataOutput:
+    """Utility class for outputting data"""
 
     known_data_formats = {
-        'csv': {'extension': 'csv','pandas': 'to_csv','kwargs': {'index' : False}},
+        'csv': {'extension': 'csv', 'pandas': 'to_csv', 'kwargs': {'index': False}},
         'excel': {'extension': 'xlsx', 'pandas': 'to_excel', 'kwargs': {'index': False}},
         'pickle': {'extension': 'pkl', 'pandas': 'to_pickle', 'kwargs': {}},
     }
@@ -22,6 +23,37 @@ class ExtractorViews:
         'pandas' is the pandas function name
         'kwargs' are any arguments to the pandas function
     """
+
+    @classmethod
+    def prepare_for_output(cls, data, data_format):
+        """
+
+        :param data:
+        :param data_format:
+        :return:
+        """
+
+        if data_format not in DataOutput.known_data_formats:
+            return exc.HTTPBadRequest(detail='Format unrecognized: %s' % data_format)
+
+        output_settings = DataOutput.known_data_formats[data_format]
+
+        # Write the object
+        if data_format in ['excel', 'pickle']:
+            # Write to temp file, read it
+            fp, filename = mkstemp(output_settings['extension'])
+            getattr(data, output_settings['pandas']) \
+                (filename, **output_settings['kwargs'])
+            output_data = open(filename, 'r').read()
+            os.remove(filename)
+        else:
+            output_data = getattr(data, output_settings['pandas']) \
+                (path_or_buf=None, **output_settings['kwargs'])
+
+        return output_settings, output_data
+
+
+class ExtractorViews:
 
     def __init__(self, request):
         self.request = request
@@ -45,7 +77,7 @@ class ExtractorViews:
         return {
             'name': name,
             'extractor': extractor,
-            'format_options': self.known_data_formats.keys(),
+            'format_options': DataOutput.known_data_formats.keys(),
         }
 
     @view_config(route_name='extractor_run')
@@ -71,22 +103,8 @@ class ExtractorViews:
         # Get desired format
         data_format = self.request.GET.get('format', 'csv')
 
-        if data_format not in self.known_data_formats:
-            return exc.HTTPBadRequest(detail='Format unrecognized: %s'%data_format)
-
-        output_settings = self.known_data_formats[data_format]
-
-        # Write the object
-        if data_format in ['excel','pickle']:
-            # Write to temp file, read it
-            fp, filename = mkstemp(output_settings['extension'])
-            getattr(extractor.get_data(), output_settings['pandas']) \
-                (filename, **output_settings['kwargs'])
-            output_data = open(filename, 'r').read()
-            os.remove(filename)
-        else:
-            output_data = getattr(extractor.get_data(), output_settings['pandas']) \
-                (path_or_buf=None, **output_settings['kwargs'])
+        # Render into desired format
+        output_settings, output_data = DataOutput.prepare_for_output(extractor.get_data(), data_format)
 
         # Send out the data in CSV format
         return Response(
