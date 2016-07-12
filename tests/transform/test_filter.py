@@ -10,7 +10,7 @@ class TestFilter(unittest.TestCase):
 
         # Run the query
         trans = FilterTransformer(query='a < 0.5')
-        trans._run(data, {})
+        data, _ = trans._run(data, {})
 
         # Check result
         self.assertEquals(1, len(data))

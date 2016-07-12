@@ -1,5 +1,6 @@
 from datetime import datetime
 import cPickle as pickle
+from copy import deepcopy
 
 from mongoengine.fields import EmbeddedDocumentField, ListField, StringField, DateTimeField, ReferenceField, BinaryField
 from mongoengine.document import EmbeddedDocument, Document
@@ -92,6 +93,33 @@ class WorkflowTool(Document):
         # Register this class with the KnownClass library
         KnownClass.register_class(self)
 
+    def clone(self, name=None, description=None):
+        """Create a new copy of this tool
+
+        :param name: string, new name for new copy
+        :param description: string, description for new copy
+        :return: WorkflowTool, new copy of this object"""
+
+        # Make a copy
+        output = deepcopy(self)
+        output.id = None
+        output.previous_step = None
+
+        # Set name of description, if desired
+        if name:
+            output.name = name
+        if description:
+            output.description = description
+
+        # Clear the notes, and anything related to result
+        output.result_cache = None
+        output.result = None
+        output.last_run = None
+        output.notes = []
+
+        return output
+
+
     def get_input(self):
         """Get the results from the previous step, which are used as input into this transformer
 
@@ -109,15 +137,22 @@ class WorkflowTool(Document):
         # Get result from previous step
         return self.previous_step.run()
 
-    def run(self):
+    def run(self, ignore_results=False):
         """Run an analysis tool
 
         If the tool has already been run, returns cached result
 
+        Input:
+            :param ignore_results: boolean, whether to redo calculation
         Output:
             :return: dict, result from the analysis tool
         """
 
+        # Clear output if needed
+        if ignore_results:
+            self.clear_results()
+
+        # Run it or unpickle cached result
         if self._result_cache is None:
             if self.result is not None:
                 self._result_cache = pickle.loads(self.result)
@@ -143,9 +178,21 @@ class WorkflowTool(Document):
 
         :param data: DataFrame, data to be transformed
         :param other_inputs: dict, other inputs to the transformer
-        :return: Dictionary holding results from this transformer
+        :return: DataFame holding results after processing, Dictionary holding other results from this tool
         """
         raise NotImplementedError()
+
+    def get_data(self):
+        """Get at after this step
+
+        :return: DataFrame
+        """
+        return self.run()['data']
+
+    def clear_results(self):
+        """Clear any cached results"""
+        self._result_cache = None
+        self.result = None
 
     def save(self):
         # Pickle result cache, if present
