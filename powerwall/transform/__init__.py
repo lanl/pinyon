@@ -19,7 +19,7 @@ class FilterTransformer(BaseTransformer):
         http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.query.html
     """
 
-    query=StringField(required=True)
+    query = StringField(required=True)
     """Query used to define filter"""
 
     def _run(self, data, inputs):

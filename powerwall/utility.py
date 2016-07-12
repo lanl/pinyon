@@ -91,7 +91,8 @@ class WorkflowTool(Document):
         super(WorkflowTool, self).__init__(*args, **kwargs)
 
         # Register this class with the KnownClass library
-        KnownClass.register_class(self)
+        if not ('skip_register' in kwargs and kwargs['skip_register']):
+            KnownClass.register_class(self)
 
     def clone(self, name=None, description=None):
         """Create a new copy of this tool
@@ -118,7 +119,6 @@ class WorkflowTool(Document):
         output.notes = []
 
         return output
-
 
     def get_input(self):
         """Get the results from the previous step, which are used as input into this transformer
