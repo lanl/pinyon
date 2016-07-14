@@ -1,8 +1,10 @@
 """Modules that manipulate a dataset"""
 import cPickle as pickle
+import inspect
 import nbformat
 from mongoengine.fields import *
 from nbconvert.preprocessors.execute import ExecutePreprocessor
+import os
 
 from powerwall.utility import WorkflowTool
 
@@ -32,6 +34,21 @@ class JupyterNotebookTransformer(WorkflowTool):
     """Uses Jupyter notebook to perform a certain optimization step"""
 
     notebook = BinaryField(required=True)
+
+    def __init__(self,*args,**kwargs):
+        super(JupyterNotebookTransformer, self).__init__(*args, **kwargs)
+
+        if 'notebook' not in kwargs:
+            self.notebook = open(os.path.join(
+                os.path.dirname(inspect.getfile(self.__class__)),
+                'jupyter_templates',
+                'python2_template.ipynb'
+            )).read()
+
+    def get_settings(self):
+        settings = super(JupyterNotebookTransformer, self).get_settings()
+        del settings['notebook']
+        return settings
 
     def _run(self, data, other_inputs):
         # Combine data into a form to send to the notebook

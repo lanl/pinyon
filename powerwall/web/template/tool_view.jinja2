@@ -25,8 +25,7 @@
 
     <ul>
         <table>
-            {% for s,v in tool._data.iteritems()
-                    if s not in ['id', 'name', 'description', 'notes', 'last_run', 'toolchain', 'result', 'previous_step'] %}
+            {% for s,v in tool.get_settings() %}
                 <tr><th>{{ s }}</th><td>{{ v | string }}</td></tr>
             {% endfor %}
         </table>

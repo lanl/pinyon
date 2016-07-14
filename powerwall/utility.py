@@ -120,6 +120,15 @@ class WorkflowTool(Document):
 
         return output
 
+    def get_settings(self):
+        """Get the settings that could be printed or adjusted via a web form
+
+        :return: dict of settings to be printed"""
+        output = dict(self._data)
+        for nogo in ['id', 'name', 'description', 'notes', 'last_run', 'toolchain', 'result', 'previous_step']:
+            del output[nogo]
+        return output
+
     def get_input(self):
         """Get the results from the previous step, which are used as input into this transformer
 
