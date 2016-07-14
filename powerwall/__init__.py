@@ -24,10 +24,10 @@ class KnownClass(Document):
     """
 
     module_name = StringField(required=True)
-    """Name of the class being used"""
+    """Name of the module of class being registered"""
 
     class_name = StringField(required=True, unique_with=['module_name'])
-    """Name of the class being used"""
+    """Name of the class being registered"""
 
     @staticmethod
     def register_class(obj):

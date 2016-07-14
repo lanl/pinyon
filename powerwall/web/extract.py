@@ -26,11 +26,11 @@ class DataOutput:
 
     @classmethod
     def prepare_for_output(cls, data, data_format):
-        """
+        """Convert a DataFrame object into a string
 
-        :param data:
-        :param data_format:
-        :return:
+        :param data: Dataset to be transformed
+        :param data_format: Desired format
+        :return: DataFrame as string
         """
 
         if data_format not in DataOutput.known_data_formats:
