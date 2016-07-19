@@ -15,21 +15,31 @@ class JupyterNotebookTransformer(WorkflowTool):
     notebook = BinaryField(required=True)
     """Stores the actual notebook"""
 
+    calc_settings = DictField()
+    """Any settings for the calculation"""
+
     def __init__(self,*args,**kwargs):
         super(JupyterNotebookTransformer, self).__init__(*args, **kwargs)
 
-        if 'notebook' not in kwargs:
+        if 'notebook_path' not in kwargs:
             self.notebook = open(os.path.join(
                 os.path.dirname(inspect.getfile(self.__class__)),
                 'jupyter_templates',
                 'python2_template.ipynb'
             )).read()
         else:
-            self.notebook = open(kwargs['notebook']).read()
+            self.notebook = open(kwargs['notebook_path']).read()
 
     def get_settings(self):
         settings = super(JupyterNotebookTransformer, self).get_settings()
+
+        # Don't print the whole notebook
         del settings['notebook']
+
+        # Make the settings a little prettier
+        del settings['calc_settings']
+        settings.update(self.calc_settings)
+
         return settings
 
     def _run(self, data, other_inputs):
@@ -63,7 +73,8 @@ class JupyterNotebookTransformer(WorkflowTool):
 
         # Render the code
         import_code = "import cPickle as pickle\n" \
-                      + "powerwall = pickle.loads(%s)" % repr(pickle.dumps(inputs))
+                    + ("powerwall = pickle.loads(%s)\n" % repr(pickle.dumps(inputs))) \
+                    + ("settings = pickle.loads(%s)" % repr(pickle.dumps(self.calc_settings)))
         export_code = "pickle.dumps(powerwall)"
         self.check_notebook(nb)
 
