@@ -25,7 +25,7 @@
 
     <ul>
         <table>
-            {% for s,v in tool.get_settings() %}
+            {% for s,v in tool.get_settings().iteritems() %}
                 <tr><th>{{ s }}</th><td>{{ v | string }}</td></tr>
             {% endfor %}
         </table>
