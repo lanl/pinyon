@@ -24,6 +24,8 @@ class JupyterNotebookTransformer(WorkflowTool):
                 'jupyter_templates',
                 'python2_template.ipynb'
             )).read()
+        else:
+            self.notebook = open(kwargs['notebook']).read()
 
     def get_settings(self):
         settings = super(JupyterNotebookTransformer, self).get_settings()

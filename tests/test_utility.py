@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from bson.objectid import ObjectId
 
+from powerwall import connect_to_database
 from powerwall.extract import ExcelExtractor
 from powerwall.toolchain import ToolChain
 from powerwall.utility import Note, WorkflowTool
@@ -30,12 +31,13 @@ class BogusTool(WorkflowTool):
 class TestWorkFlow(TestCase):
 
     def test_get_input(self):
+        connect_to_database()
         # Make a toolchain
         tc = ToolChain(name='TestChain', description='A sample toolchain')
         tc.extractor = ExcelExtractor(path='./test-files/travel-times.xlsx')
 
         # Make a FilterExtractor
-        wt = WorkflowTool()
+        wt = WorkflowTool(skip_register=True)
         wt.toolchain = tc
         inputs = wt.get_input()
         self.assertEquals(['data'], inputs.keys())
@@ -51,8 +53,10 @@ class TestWorkFlow(TestCase):
         self.assertEquals(inputs['data'], inputs['data2'])
 
     def test_clone(self):
+        connect_to_database()
+
         # Make a Workflow tool
-        x = WorkflowTool()
+        x = WorkflowTool(skip_register=True)
 
         # Set some fake values
         x.notes = [Note(note='note')]

@@ -9,7 +9,7 @@ class TestFilter(unittest.TestCase):
         data = DataFrame([[1, 1], [0, 0]], columns=['a', 'b'])
 
         # Run the query
-        trans = FilterTransformer(query='a < 0.5')
+        trans = FilterTransformer(query='a < 0.5', skip_register=True)
         data, _ = trans._run(data, {})
 
         # Check result
