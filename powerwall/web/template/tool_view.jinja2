@@ -41,6 +41,18 @@
         </ul>
     {% endif %}
 
+    {% if is_jupyter %}
+        <h2>Jupyter Notebook</h2>
+
+        <p>This module uses a Jupyter notebok to perform calculations. Download options:</p>
+
+        <ul>
+            <li><a href="/tool/{{ tool.id }}/jupyter">View in HTML</a></li>
+            <li><a href="/tool/{{ tool.id }}/jupyter?format=file">Download ipynb</a></li>
+        </ul>
+
+    {% endif %}
+
     {% if tool.last_run %}
         <h2>Outputs</h2>
 

@@ -1,10 +1,13 @@
 """Web views for tools"""
-
+import nbformat
+import nbconvert
+from nbconvert.exporters.html import HTMLExporter
 from pyramid.response import Response
 from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 import cPickle as pickle
 
+from powerwall.transform.jupyter import JupyterNotebookTransformer
 from powerwall.utility import WorkflowTool
 from .extract import DataOutput
 
@@ -34,6 +37,7 @@ class ToolViews:
             'name': name,
             'tool': tool,
             'format_options': DataOutput.known_data_formats.keys(),
+            'is_jupyter': isinstance(tool, JupyterNotebookTransformer)
         }
 
     @view_config(route_name='tool_run')
@@ -95,8 +99,43 @@ class ToolViews:
             body=pickle.dumps(output)
         )
 
+    @view_config(route_name='tool_jupyter')
+    def render_notebook(self):
+
+        # Get the requested tool
+        tool, tid = self._get_tool()
+
+        # If this is an IPython notebook, render it into HTML
+        if not isinstance(tool, JupyterNotebookTransformer):
+            return exc.HTTPNotAcceptable(detail='Tool is not a Jupyter notebook')
+
+        # Get whether to download or view in HTML
+        output_style = self.request.GET.get('format', 'html')
+
+        # Load in the notebook
+        if output_style == 'html':
+            # Parse the notebook as an notebook object
+            nb = nbformat.reads(tool.notebook, nbformat.NO_CONVERT)
+            tool._add_data(nb, None, to_display=True)
+
+            # Render it as HTML
+            ex = HTMLExporter()
+            output, _ = ex.from_notebook_node(nb)
+            return Response(output)
+
+        elif output_style == 'file':
+            return Response(
+                content_type='application/force-download',
+                content_dispsoition='attachment; filename=%s.%s'%(tool.name, 'ipynb'),
+                body=tool.write_notebook(None)
+            )
+        else:
+            return exc.HTTPBadRequest(detail='Format not recognized: ' + output_style)
+
+
 def includeme(config):
     config.add_route('tool_view', '/tool/{id}/view')
     config.add_route('tool_run', '/tool/{id}/run')
     config.add_route('tool_data', '/tool/{id}/data')
     config.add_route('tool_output', '/tool/{id}/output/{piece}')
+    config.add_route('tool_jupyter', '/tool/{id}/jupyter')

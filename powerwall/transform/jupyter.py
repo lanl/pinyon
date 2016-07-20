@@ -68,17 +68,23 @@ class JupyterNotebookTransformer(WorkflowTool):
         self.notebook = str(nbformat.writes(nb))
         return data, outputs
 
-    def _add_data(self, nb, inputs):
+    def _add_data(self, nb, inputs, to_display=False):
         """Update the code used to import and export data into this notebook
 
         :param nb: NotebookNode, notebook used to perform the code
+        :param input: dict, inputs provided to this nbformat
+        :param to_display: boolean, whether to put in an input / output placeholder
         """
 
         # Render the code
-        import_code = "import cPickle as pickle\n" \
-                    + ("powerwall = pickle.loads(%s)\n" % repr(pickle.dumps(inputs))) \
-                    + ("settings = pickle.loads(%s)" % repr(pickle.dumps(self.calc_settings)))
-        export_code = "pickle.dumps(powerwall)"
+        if to_display:
+            import_code = "# Placeholder code for inputs"
+            export_code = "# Placeholder code for outputs"
+        else:
+            import_code = "import cPickle as pickle\n" \
+                        + ("powerwall = pickle.loads(%s)\n" % repr(pickle.dumps(inputs))) \
+                        + ("settings = pickle.loads(%s)" % repr(pickle.dumps(self.calc_settings)))
+            export_code = "pickle.dumps(powerwall)"
         self.check_notebook(nb)
 
         # Put them in the documents
@@ -86,6 +92,9 @@ class JupyterNotebookTransformer(WorkflowTool):
         nb.cells[2]['metadata']['collapsed'] = True
         nb.cells[-1]['source'] = export_code
         nb.cells[-1]['metadata']['collapsed'] = True
+
+        # For display mode, delete the last output
+        nb.cells[-1]['outputs'] = {}
 
     def check_notebook(self, nb):
         if "Input Cell" not in nb.cells[1]['source'] or "Output Cell" not in nb.cells[-2]['source']:
@@ -123,7 +132,7 @@ class JupyterNotebookTransformer(WorkflowTool):
     def write_notebook(self, f):
         """Write the notebook to disk with the current data
 
-        :param f: string or file-like object, path or object used to be written to disk"""
+        :param f: string or file-like object, path or object used to be written to disk. None to print to return string"""
 
         # Prepare to write
         if isinstance(f, str):
@@ -137,6 +146,8 @@ class JupyterNotebookTransformer(WorkflowTool):
 
         # Write the notebook
         notebook = nbformat.writes(nb, nbformat.NO_CONVERT)
+        if f is None:
+            return notebook
         fp.write(notebook)
 
         if isinstance(f, str):
