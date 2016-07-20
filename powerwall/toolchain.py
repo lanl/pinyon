@@ -4,6 +4,7 @@ from extract import BaseExtractor
 from mongoengine import Document
 from mongoengine.fields import *
 
+from powerwall import KnownClass
 from powerwall.utility import WorkflowTool
 
 
@@ -23,6 +24,12 @@ class ToolChain(Document):
 
     extractor = ReferenceField(BaseExtractor, required=True)
     """Tool used to extract data from database"""
+
+    def __init__(self, *args, **kwargs):
+        super(ToolChain, self).__init__(*args, **kwargs)
+
+        # Add to repo
+        KnownClass.register_class(self)
 
     def get_all_tools(self):
         """Get all `WorkflowTool` objects associated with this workflow"""
