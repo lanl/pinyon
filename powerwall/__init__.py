@@ -42,14 +42,23 @@ class KnownClass(Document):
             KnownClass(module_name = obj.__module__, class_name = obj.__class__.__name__).save()
 
 
-def connect_to_database():
-    """Connect to the MongoDB supporting powerwall"""
+def connect_to_database(**setting_overrides):
+    """Connect to the MongoDB supporting powerwall
 
-    return mge.connect(mongodb_settings['name'],
-                       host=mongodb_settings['host'],
-                       port=mongodb_settings['port'],
-                       username=mongodb_settings['user'],
-                       password=mongodb_settings['pswd']
+    :param setting_overrides: any settings to be overrode
+    from the conventional mongoDB settings
+    """
+
+    # Make a local copy of the settings
+    settings = dict(mongodb_settings)
+    settings.update(setting_overrides)
+
+    # Connect!
+    return mge.connect(settings['name'],
+                       host=settings['host'],
+                       port=settings['port'],
+                       username=settings['user'],
+                       password=settings['pswd']
     )
 
 
