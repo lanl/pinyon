@@ -31,7 +31,7 @@ class FilterTransformer(BaseTransformer):
 class ColumnAddTransformer(WorkflowTool):
     """Add new columns to the dataset"""
 
-    column_names = ListField(StringField, required=True)
+    column_names = ListField(StringField(), required=True)
 
     def _run(self, data, other_inputs):
         for col in self.column_names:
