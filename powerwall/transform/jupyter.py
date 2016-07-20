@@ -21,14 +21,18 @@ class JupyterNotebookTransformer(WorkflowTool):
     def __init__(self,*args,**kwargs):
         super(JupyterNotebookTransformer, self).__init__(*args, **kwargs)
 
-        if 'notebook_path' not in kwargs:
-            self.notebook = open(os.path.join(
-                os.path.dirname(inspect.getfile(self.__class__)),
-                'jupyter_templates',
-                'python2_template.ipynb'
-            )).read()
-        else:
-            self.notebook = open(kwargs['notebook_path']).read()
+    @classmethod
+    def load_notebook(cls, name, description, path):
+        """Load a notebook from disk, turn into transformer
+
+        :param name: string, name of transformer
+        :param description: string, description of transformer
+        :param path: string, path to the notebook
+        :return: JupyterNotebookTransformer
+        """
+        x = JupyterNotebookTransformer(name=name, description=description)
+        x.notebook = open(path).read()
+        return x
 
     def get_settings(self):
         settings = super(JupyterNotebookTransformer, self).get_settings()
@@ -62,7 +66,6 @@ class JupyterNotebookTransformer(WorkflowTool):
 
         # Save the notebook
         self.notebook = str(nbformat.writes(nb))
-
         return data, outputs
 
     def _add_data(self, nb, inputs):

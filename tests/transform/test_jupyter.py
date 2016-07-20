@@ -4,6 +4,7 @@ from powerwall.transform.jupyter import JupyterNotebookTransformer
 
 from unittest import TestCase
 
+
 class TestNotebook(TestCase):
 
     def test_operation(self):
@@ -11,7 +12,7 @@ class TestNotebook(TestCase):
         tc.extractor = ExcelExtractor(path='./test-files/travel-times.xlsx', sheet='To', skip_register=True)
 
         # Make the settings file
-        jt = JupyterNotebookTransformer(notebook_path='./test-files/jupyter_example.ipynb', skip_register=True)
+        jt = JupyterNotebookTransformer.load_notebook('Test', 'Test notebook', './test-files/jupyter_example.ipynb')
         jt.calc_settings = {'multiple':1}
         jt.toolchain = tc
 
