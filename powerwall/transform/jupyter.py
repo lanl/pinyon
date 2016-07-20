@@ -27,12 +27,21 @@ class JupyterNotebookTransformer(WorkflowTool):
 
         :param name: string, name of transformer
         :param description: string, description of transformer
-        :param path: string, path to the notebook
+        :param path: string, path to the notebook. None for default notebook
         :return: JupyterNotebookTransformer
         """
         x = JupyterNotebookTransformer(name=name, description=description)
-        x.notebook = open(path).read()
+
+        if path is None:
+            x.notebook = open(os.path.join(
+                os.path.dirname(inspect.getfile(x.__class__)),
+                'jupyter_templates',
+                'python2_template.ipynb'
+            )).read()
+        else:
+            x.notebook = open(path).read()
         return x
+
 
     def get_settings(self):
         settings = super(JupyterNotebookTransformer, self).get_settings()
