@@ -1,6 +1,6 @@
 import unittest
 from pandas import DataFrame
-from powerwall.transform import FilterTransformer, ColumnAddTransformer
+from powerwall.transform import *
 
 
 class TestFilter(unittest.TestCase):
@@ -17,6 +17,7 @@ class TestFilter(unittest.TestCase):
         self.assertEquals(1, len(data))
         self.assertEquals([1], list(data.index))
 
+
 class TestColumnAdd(unittest.TestCase):
 
     def test_transformer(self):
@@ -31,3 +32,18 @@ class TestColumnAdd(unittest.TestCase):
         # Check result
         self.assertEquals(4, len(data.columns))
         self.assertEquals(2, len(data))
+
+
+class TestRequiredField(unittest.TestCase):
+
+    def test_required(self):
+        # Make a test dataset
+        data = DataFrame([[1, None], [0, 0]], columns=['a', 'b'])
+
+        # Eliminate the row that
+        trans = RequiredFieldTransformer(required_column='b')
+        data, _ = trans._run(data, {})
+
+        # Check result
+        self.assertEquals(1, len(data))
+        self.assertEquals([1], data.index)

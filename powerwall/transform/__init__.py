@@ -28,7 +28,16 @@ class FilterTransformer(BaseTransformer):
         return data.query(self.query), dict(inputs)
 
 
-class ColumnAddTransformer(WorkflowTool):
+class RequiredFieldTransformer(BaseTransformer):
+    """Eliminate any rows that have a NaN value for a certain quantity"""
+
+    required_column = StringField(required=True)
+
+    def _run(self, data, other_inputs):
+        return data[~ data[self.required_column].isnull()], other_inputs
+
+
+class ColumnAddTransformer(BaseTransformer):
     """Add new columns to the dataset"""
 
     column_names = ListField(StringField(), required=True)
