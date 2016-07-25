@@ -42,7 +42,6 @@ class JupyterNotebookTransformer(WorkflowTool):
             x.notebook = open(path).read()
         return x
 
-
     def get_settings(self):
         settings = super(JupyterNotebookTransformer, self).get_settings()
 
@@ -65,7 +64,7 @@ class JupyterNotebookTransformer(WorkflowTool):
         self._add_data(nb, inputs)
 
         # Run the notebook
-        ep = ExecutePreprocessor()
+        ep = ExecutePreprocessor(timeout=-1)
         ep.preprocess(nb, {})
 
         # Get the results
