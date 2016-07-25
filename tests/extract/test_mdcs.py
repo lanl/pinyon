@@ -30,10 +30,10 @@ class TestMDCSUtilities(unittest.TestCase):
                                       '<b><english>Goodbye</english><spanish>Adios</spanish></b>' +
                                       '</a>')
 
-        flat = ExtractorFlattener(location=['a',('b',0),'spanish'])
+        flat = ExtractorFlattener(location=['a','b__0','spanish'])
         self.assertEquals('Hola', flat.extract_data(example_xml))
 
-        flat = ExtractorFlattener(location=['a', ('b', 'english', 'Hello'), 'spanish'])
+        flat = ExtractorFlattener(location=['a', 'b__english__Hello', 'spanish'])
         self.assertEquals('Hola', flat.extract_data(example_xml))
 
     def test_element_fraction(self):
@@ -108,7 +108,7 @@ class TestMDCSUtilities(unittest.TestCase):
         test_xml = xmltodict.parse(open(os.path.join('test-files', '1971jac2-Figure10-0.xml')))
 
         flat = PhysicalQuantityExtractorFlattener(
-            location=['literature-data', 'material', 'processing', ('step', 'name', 'Aging'), 'ageing', 'time'],
+            location=['literature-data', 'material', 'processing', 'step__name__Aging', 'ageing', 'time'],
             units='min'
         )
 

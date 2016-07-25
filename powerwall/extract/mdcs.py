@@ -83,11 +83,11 @@ class ExtractorFlattener(EntryFlattener):
 
     the location string ['a','b'] will resolve into a list [dict('english'='Hello', spanish='Hola'),
       dict('english'='Goodbye', spanish='Adios')]. To resolve which of these entries, we offer a few options all of which
-      are based on providing a tuple to the location vector and not a string:
+      are based on providing a specially-formated string:
 
-        1. ('tag', index) - Where index is an int defining the list index
-        2. ('tag', 'subeelement', 'desired_value') - Which can be used to select the field with a subelement with a certain
-            value. Using the previous example, ['a',('b','english','Hello')] will return the first entry (i.e., the one
+        1. '<element>__<index>' - Where index is an int defining the list index
+        2. '<element>__<subeelement>__<desired_value>) - Which can be used to select the field with a subelement with a certain
+            value. Using the previous example, ['a','b__english__Hello'] will return the first entry (i.e., the one
             where the english field has a value of 'Hello')
     """
     
@@ -100,7 +100,7 @@ class ExtractorFlattener(EntryFlattener):
         for loc in self.location:
 
             # Operation for a simple dictionary lookup
-            if isinstance(loc, unicode):
+            if not '__' in loc:
                 # Simple lookup
                 if loc not in current:
                     return None
@@ -109,15 +109,13 @@ class ExtractorFlattener(EntryFlattener):
 
             # Handling duplicate keys
             else:
-                if not type(loc) == tuple:
-                    raise Exception('Due to duplicate elements, you must provide more information to specify which to retrieve')
-
                 # Get the possibilities
-                poss = current[loc[0]]
-                if len(loc) == 2 and type(loc[1]) == int:
-                    current = poss[loc[1]]
-                elif len(loc) == 3:
-                    hits = [ x for x in poss if x[loc[1]] == loc[2] ]
+                loc_tuple = loc.split("__")
+                poss = current[loc_tuple[0]]
+                if len(loc_tuple) == 2:
+                    current = poss[int(loc_tuple[1])]
+                elif len(loc_tuple) == 3:
+                    hits = [ x for x in poss if x[loc_tuple[1]] == loc_tuple[2] ]
                     if len(hits) == 0:
                         return None # Subelement not found
                     elif len(hits) > 1:
