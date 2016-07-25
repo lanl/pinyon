@@ -33,7 +33,7 @@ class BaseExtractor(Document):
     result = StringField(required=False)
     """Storage for the pickled form of _data_cache"""
     
-    def get_data(self, ignore_cache=True):
+    def get_data(self, ignore_cache=False):
         """Extract data from a certain resource, assemble
         data into a tabular format
         
