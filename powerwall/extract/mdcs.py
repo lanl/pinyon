@@ -212,14 +212,14 @@ class ElementFractionFlattener(ExtractorFlattener):
         # Convert composition to a dict
         comp = dict()
         for entry in comp_record['constituent']:
-            comp[entry['element']] = float(entry['amount'])
+            comp[entry['element']] = float(entry['quantity']['value'])
 
         # If no amount of this element, return 0 now
         if self.element not in comp:
             return 0
 
         # Run the conversion
-        cur_type, cur_units = comp_record['quantityUnit'].split(" ")
+        cur_type, cur_units = comp_record['quantity-type'].split(" ")
         des_type = "mass" if self.mass_units else "mole"
         des_units = "fraction" if self.fraction else "percent"
 

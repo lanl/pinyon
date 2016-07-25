@@ -38,13 +38,13 @@ class TestMDCSUtilities(unittest.TestCase):
 
     def test_element_fraction(self):
         # Make the sample value
-        value = dict(
-            quantityUnit='mole fraction',
-            constituent=[
-                dict(element='Na', amount=0.5),
-                dict(element='Cl', amount=0.5),
+        value = {
+            'quantity-type':'mole fraction',
+            'constituent':[
+                dict(element='Na', quantity=dict(value=0.5)),
+                dict(element='Cl', quantity=dict(value=0.5)),
             ]
-        )
+        }
 
         # mole percent
         flat = ElementFractionFlattener(location=[], element='Na', mass_units=False, fraction=False)
@@ -59,15 +59,17 @@ class TestMDCSUtilities(unittest.TestCase):
         self.assertAlmostEqual(0.393372, flat.extract_data(value), 4)
 
         # mole fraction, but assuming that data is in mass fraction
-        value['quantityUnit'] = 'mass percent'
-        value['constituent'][0]['amount'] = 50
-        value['constituent'][1]['amount'] = 50
+        value['quantity-type'] = 'mass percent'
+        value['constituent'][0]['quantity']['value'] = 50
+        value['constituent'][1]['quantity']['value'] = 50
         flat = ElementFractionFlattener(location=[], element='Na', mass_units=False, fraction=False)
         self.assertAlmostEqual(60.6628, flat.extract_data(value), 4)
 
         # Test out on the test_xml
-        flat = ElementFractionFlattener(location=['HardnessMeasurement', 'NominalComposition'], element='Nb', mass_units=True)
-        self.assertAlmostEqual(4.5, flat.extract_data(self.test_xml), 2)
+        test_file = xmltodict.parse(open(os.path.join('test-files', '1971jac2-Figure10-0.xml')))
+        flat = ElementFractionFlattener(location=['literature-data', 'material', 'nominal-composition'],
+                                        element='Nb', mass_units=True)
+        self.assertAlmostEqual(4.5, flat.extract_data(test_file), 2)
 
     def test_composition_printer(self):
         # Make the sample value
