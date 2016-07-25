@@ -24,6 +24,18 @@ class TestMDCSUtilities(unittest.TestCase):
         flat = PhysicalQuantityExtractorFlattener(location=['HardnessMeasurement', 'AgingCondition', 'temperature'], units='kelvin')
         self.assertEquals(25+273.15, flat.extract_data(self.test_xml))
 
+    def test_extractor_base(self):
+        example_xml = xmltodict.parse('<a>' +
+                                      '<b><english>Hello</english><spanish>Hola</spanish></b>' +
+                                      '<b><english>Goodbye</english><spanish>Adios</spanish></b>' +
+                                      '</a>')
+
+        flat = ExtractorFlattener(location=['a',('b',0),'spanish'])
+        self.assertEquals('Hola', flat.extract_data(example_xml))
+
+        flat = ExtractorFlattener(location=['a', ('b', 'english', 'Hello'), 'spanish'])
+        self.assertEquals('Hola', flat.extract_data(example_xml))
+
     def test_element_fraction(self):
         # Make the sample value
         value = dict(
@@ -87,3 +99,14 @@ class TestMDCSUtilities(unittest.TestCase):
         flat = CompositionPrinterFlattener(location=['HardnessMeasurement', 'NominalComposition'],
                                            base_element='U', mole_percent=False, print_units=True)
         self.assertEquals('U-4.5wt%Nb', flat.extract_data(self.test_xml))
+
+
+    def test_multiple_tags_aging(self):
+        test_xml = xmltodict.parse(open(os.path.join('test-files', '1971jac2-Figure10-0.xml')))
+
+        flat = PhysicalQuantityExtractorFlattener(
+            location=['literature-data', 'material', 'processing', ('step', 'name', 'Aging'), 'ageing', 'time'],
+            units='min'
+        )
+
+        self.assertEquals(60, flat.extract_data(test_xml))

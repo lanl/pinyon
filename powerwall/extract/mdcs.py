@@ -6,6 +6,7 @@ the schema definition is specified along with the documentation if a
 extractor is specifically tailored to a certain data structure.
 """
 from __future__ import absolute_import
+
 import mdcs
 
 from powerwall import KnownClass
@@ -51,7 +52,43 @@ class EntryFlattener(EmbeddedDocument):
 
 
 class ExtractorFlattener(EntryFlattener):
-    """Flattener that pulls data simply pulls from the MDCS record"""
+    """Flattener that pulls data simply pulls from the MDCS record
+
+    The data record from MDCS is passed as an OrderedDict from the API. Each element
+     is represented as a key and its subelements as dictionary. In most cases, one just needs to specify a list of
+     the keys to point to the correct location in the documented. For example, to get the value of the <b>
+     field in the following document
+
+     <a>
+        <b>Yes</b>
+        <c>No</c>
+     </a>
+
+     the proper location string would be ['a','b'], which would resolve to 'Yes'.
+
+     As elements can appear multiple times, the XML parser (xmltodict) puts all instances of a certain element
+        into a list. For example, for the document
+
+      <a>
+        <b>
+            <english>Hello</english>
+            <spanish>Hola</spanish>
+        </b>
+        <b>
+            <english>Goodbye</english>
+            <spanish>Adios</spanish>
+        </b>
+      </a>
+
+    the location string ['a','b'] will resolve into a list [dict('english'='Hello', spanish='Hola'),
+      dict('english'='Goodbye', spanish='Adios')]. To resolve which of these entries, we offer a few options all of which
+      are based on providing a tuple to the location vector and not a string:
+
+        1. ('tag', index) - Where index is an int defining the list index
+        2. ('tag', 'subeelement', 'desired_value') - Which can be used to select the field with a subelement with a certain
+            value. Using the previous example, ['a',('b','english','Hello')] will return the first entry (i.e., the one
+            where the english field has a value of 'Hello')
+    """
     
     location = ListField(StringField(), required=True)
     """Name of the field to extract"""
@@ -60,10 +97,32 @@ class ExtractorFlattener(EntryFlattener):
         # Iteratively move through data hierarchy
         current = record
         for loc in self.location:
-            if loc not in current:
-                return None
+
+            # Operation for a simple dictionary lookup
+            if isinstance(loc, unicode):
+                # Simple lookup
+                if loc not in current:
+                    return None
+                else:
+                    current = current[loc]
+
+            # Handling duplicate keys
             else:
-                current = current[loc]
+                if not type(loc) == tuple:
+                    raise Exception('Due to duplicate elements, you must provide more information to specify which to retrieve')
+
+                # Get the possibilities
+                poss = current[loc[0]]
+                if len(loc) == 2 and type(loc[1]) == int:
+                    current = poss[loc[1]]
+                elif len(loc) == 3:
+                    hits = [ x for x in poss if x[loc[1]] == loc[2] ]
+                    if len(hits) == 0:
+                        return None # Subelement not found
+                    elif len(hits) > 1:
+                        raise Exception('More than 1 possibility found')
+                    current = hits[0]
+
         return current
 
 
