@@ -73,13 +73,13 @@ class TestMDCSUtilities(unittest.TestCase):
 
     def test_composition_printer(self):
         # Make the sample value
-        value = dict(
-            quantityUnit='mass fraction',
-            constituent=[
-                dict(element='Na', amount=0.5),
-                dict(element='Cl', amount=0.5),
+        value = {
+            'quantity-type': 'mass fraction',
+            'constituent': [
+                dict(element='Na', quantity=dict(value=0.5)),
+                dict(element='Cl', quantity=dict(value=0.5)),
             ]
-        )
+        }
 
         # Mass percent, no units, no base element
         flat = CompositionPrinterFlattener(location=[], mole_percent=False)
@@ -98,9 +98,10 @@ class TestMDCSUtilities(unittest.TestCase):
         self.assertEquals("Na-39.3at%Cl", flat.extract_data(value))
 
         # Test on example record
-        flat = CompositionPrinterFlattener(location=['HardnessMeasurement', 'NominalComposition'],
+        test_doc = xmltodict.parse(open(os.path.join('test-files', '1971jac2-Figure10-0.xml')))
+        flat = CompositionPrinterFlattener(location=['literature-data', 'material', 'nominal-composition'],
                                            base_element='U', mole_percent=False, print_units=True)
-        self.assertEquals('U-4.5wt%Nb', flat.extract_data(self.test_xml))
+        self.assertEquals('U-4.5wt%Nb', flat.extract_data(test_doc))
 
 
     def test_multiple_tags_aging(self):

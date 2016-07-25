@@ -38,7 +38,8 @@ class EntryFlattener(EmbeddedDocument):
         super(EntryFlattener, self).__init__(*args, **kwargs)
 
         # Register this object with Powerwall
-        KnownClass.register_class(self)
+        if not ('skip_register' in kwargs and kwargs['skip_register']):
+            KnownClass.register_class(self)
 
     def extract_data(self, record):
         """Extract a data from an MDCS data record
@@ -172,7 +173,7 @@ class PhysicalQuantityExtractorFlattener(ExtractorFlattener):
 class ElementFractionFlattener(ExtractorFlattener):
     """Extract amount of a certain element for a composition object
 
-    Assumes that the provided data is formatted according to simple-composition.xsd
+    Assumes that the provided data is formatted according to material-composition.xsd
     """
 
     element=StringField(max_length=2, required=True)
@@ -270,10 +271,10 @@ class CompositionPrinterFlattener(ExtractorFlattener):
         # Convert composition to a dict
         comp = dict()
         for entry in comp_record['constituent']:
-            comp[entry['element']] = float(entry['amount'])
+            comp[entry['element']] = float(entry['quantity']['value'])
 
         # If needed, convert to between mole/mass
-        cur_type, cur_units = comp_record['quantityUnit'].split(" ")
+        cur_type, cur_units = comp_record['quantity-type'].split(" ")
         if cur_type not in ['mass', 'mole']:
             raise Exception('Composition type not recognized: ' + comp_record['quantityUnit'])
         if cur_units not in ['fraction', 'percent']:
