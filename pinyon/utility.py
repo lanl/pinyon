@@ -5,7 +5,7 @@ from copy import deepcopy
 from mongoengine.fields import EmbeddedDocumentField, ListField, StringField, DateTimeField, ReferenceField, BinaryField
 from mongoengine.document import EmbeddedDocument, Document
 
-from powerwall import KnownClass
+from pinyon import KnownClass
 
 
 class Note(EmbeddedDocument):

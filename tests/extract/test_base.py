@@ -3,7 +3,7 @@ import os
 
 import pickle
 
-from powerwall.extract import ExcelExtractor
+from pinyon.extract import ExcelExtractor
 
 
 class TestBase(TestCase):

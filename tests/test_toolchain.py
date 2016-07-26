@@ -1,15 +1,15 @@
 from unittest import TestCase
 
-from powerwall import connect_to_database
-from powerwall.extract import ExcelExtractor
-from powerwall.toolchain import ToolChain
-from powerwall.transform import ColumnAddTransformer
+from pinyon import connect_to_database
+from pinyon.extract import ExcelExtractor
+from pinyon.toolchain import ToolChain
+from pinyon.transform import ColumnAddTransformer
 
 
 class TestToolChain(TestCase):
 
     def setUp(self):
-        connect_to_database(name='powerwall_test', host="")
+        connect_to_database(name='pinyon_test', host="")
 
     @staticmethod
     def make_class():

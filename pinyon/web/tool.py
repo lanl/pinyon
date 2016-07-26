@@ -7,8 +7,8 @@ from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 import cPickle as pickle
 
-from powerwall.transform.jupyter import JupyterNotebookTransformer
-from powerwall.utility import WorkflowTool
+from pinyon.transform.jupyter import JupyterNotebookTransformer
+from pinyon.utility import WorkflowTool
 from .extract import DataOutput
 
 

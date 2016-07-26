@@ -4,8 +4,8 @@ from extract import BaseExtractor
 from mongoengine import Document
 from mongoengine.fields import *
 
-from powerwall import KnownClass
-from powerwall.utility import WorkflowTool
+from pinyon import KnownClass
+from pinyon.utility import WorkflowTool
 import networkx as nx
 
 

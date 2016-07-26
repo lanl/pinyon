@@ -13,7 +13,7 @@ class TutorialViewTests(unittest.TestCase):
         
 class TutorialFunctionalTests(unittest.TestCase):
     def setUp(self):
-        from powerwall.web import main
+        from pinyon.web import main
         app = main({})
         from webtest import TestApp
 

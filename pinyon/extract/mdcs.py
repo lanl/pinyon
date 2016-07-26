@@ -9,7 +9,7 @@ from __future__ import absolute_import
 
 import mdcs
 
-from powerwall import KnownClass
+from pinyon import KnownClass
 from . import BaseExtractor
 from mongoengine.fields import *
 from mongoengine import EmbeddedDocument, Document
@@ -37,7 +37,7 @@ class EntryFlattener(EmbeddedDocument):
     def __init__(self, *args, **kwargs):
         super(EntryFlattener, self).__init__(*args, **kwargs)
 
-        # Register this object with Powerwall
+        # Register this object with pinyon
         if not ('skip_register' in kwargs and kwargs['skip_register']):
             KnownClass.register_class(self)
 

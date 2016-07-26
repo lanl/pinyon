@@ -4,7 +4,7 @@ from mongoengine.fields import *
 from pandas.core.series import Series
 
 
-from powerwall.utility import WorkflowTool
+from pinyon.utility import WorkflowTool
 
 __author__ = 'Logan Ward'
 

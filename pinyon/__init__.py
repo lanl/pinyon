@@ -43,7 +43,7 @@ class KnownClass(Document):
 
 
 def connect_to_database(**setting_overrides):
-    """Connect to the MongoDB supporting powerwall
+    """Connect to the MongoDB supporting pinyon
 
     :param setting_overrides: any settings to be overrode
     from the conventional mongoDB settings

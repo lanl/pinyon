@@ -1,8 +1,8 @@
-use powerwall
+use pinyon
 db.createUser(
 {
-	user: "powerwall_user",
-	pwd: "powerwall_user",
+	user: "pinyon_user",
+	pwd: "pinyon_user",
 	roles: ["readWrite"]
 }
 )

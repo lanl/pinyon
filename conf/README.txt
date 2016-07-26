@@ -4,7 +4,7 @@ This document provides explanations about the configuration of MongoDB.
 Please use the configuration file provided with the MDCS (mdcs/conf/mongodb.conf), to be sure to have the minimum required security for your database.
 You can find more information about MongoDB security: http://docs.mongodb.org/manual/administration/security-checklist/
 
-Required: Edit the file conf/mongodb.conf and replace the value of dbPath by the path on your system (path/to/mdcs/data/db). By default, this is given as a relative path from the root directory of Powerwall
+Required: Edit the file conf/mongodb.conf and replace the value of dbPath by the path on your system (path/to/mdcs/data/db). By default, this is given as a relative path from the root directory of pinyon
 
 Required: Please follow these instructions to set up authentication for your database:
 - Add mongodb/bin folder to your path for more convenience

@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 
-from powerwall.toolchain import ToolChain
+from pinyon.toolchain import ToolChain
 
 
 @view_config(route_name='home', renderer='template/home.jinja2')

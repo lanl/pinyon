@@ -6,7 +6,7 @@ import nbformat
 from mongoengine import BinaryField, DictField
 from nbconvert.preprocessors import ExecutePreprocessor
 
-from powerwall.utility import WorkflowTool
+from pinyon.utility import WorkflowTool
 
 
 class JupyterNotebookTransformer(WorkflowTool):
@@ -90,9 +90,9 @@ class JupyterNotebookTransformer(WorkflowTool):
             export_code = "# Placeholder code for outputs"
         else:
             import_code = "import cPickle as pickle\n" \
-                        + ("powerwall = pickle.loads(%s)\n" % repr(pickle.dumps(inputs))) \
+                        + ("pinyon = pickle.loads(%s)\n" % repr(pickle.dumps(inputs))) \
                         + ("settings = pickle.loads(%s)" % repr(pickle.dumps(self.calc_settings)))
-            export_code = "pickle.dumps(powerwall)"
+            export_code = "pickle.dumps(pinyon)"
         self.check_notebook(nb)
 
         # Put them in the documents

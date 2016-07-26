@@ -5,7 +5,7 @@ from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 from tempfile import mkstemp
 
-from powerwall.extract import BaseExtractor
+from pinyon.extract import BaseExtractor
 
 
 class DataOutput:

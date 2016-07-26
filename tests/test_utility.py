@@ -2,10 +2,10 @@ from unittest import TestCase
 
 from bson.objectid import ObjectId
 
-from powerwall import connect_to_database
-from powerwall.extract import ExcelExtractor
-from powerwall.toolchain import ToolChain
-from powerwall.utility import Note, WorkflowTool
+from pinyon import connect_to_database
+from pinyon.extract import ExcelExtractor
+from pinyon.toolchain import ToolChain
+from pinyon.utility import Note, WorkflowTool
 
 
 class TestNote(TestCase):

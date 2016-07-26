@@ -1,6 +1,6 @@
 import unittest
 from pandas import DataFrame
-from powerwall.transform import *
+from pinyon.transform import *
 
 
 class TestFilter(unittest.TestCase):

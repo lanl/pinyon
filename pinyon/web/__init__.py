@@ -22,7 +22,7 @@ def main(global_config, **settings):
     config.include('cornice')
     
     # Add in static directories
-    config.add_static_view(name='static', path='powerwall:web/static')
+    config.add_static_view(name='static', path='pinyon:web/static')
 
     # Add in the routes
     config.include('.extract')

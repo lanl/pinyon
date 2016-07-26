@@ -1,6 +1,6 @@
 from cornice import Service
 
-from powerwall.extract import BaseExtractor
+from pinyon.extract import BaseExtractor
 
 ex_data = Service(name='extractor', path='/rest/extract/{name}/data', description='Getting data from extractors')
 

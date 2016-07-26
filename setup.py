@@ -7,7 +7,7 @@ with open('README.md') as f:
     #license = f.read()
 
 setup(
-    name='powerwall',
+    name='pinyon',
     version='0.0.1',
     description='Library for managing analysis and visualization of data',
     long_description=readme,
