@@ -6,6 +6,7 @@ from mongoengine.fields import *
 
 from powerwall import KnownClass
 from powerwall.utility import WorkflowTool
+import networkx as nx
 
 
 class ToolChain(Document):
@@ -35,3 +36,21 @@ class ToolChain(Document):
         """Get all `WorkflowTool` objects associated with this workflow"""
 
         return WorkflowTool.objects.filter(toolchain=self)
+
+    def get_tool_network(self):
+        """Get a network representing current tools"""
+
+        # Get tools
+        tools = self.get_all_tools()
+
+        # Make the network
+        G = nx.DiGraph()
+
+        #  Make the edges
+        for tool in tools:
+            if tool.previous_step is None:
+                G.add_edge(self.extractor, tool)
+            else:
+                G.add_edge(tool.previous_step, tool)
+
+        return G

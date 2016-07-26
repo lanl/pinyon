@@ -139,7 +139,7 @@ class WorkflowTool(Document):
 
         if self.previous_step is None:
             # Get data from the host workflow
-            data = self.toolchain.extractor.get_data(save_results=save_results)
+            data = self.toolchain.extractor.get_data()
 
             # Return the dictionary
             return {'data': data}

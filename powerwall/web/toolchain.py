@@ -1,8 +1,12 @@
 """Views for extractors"""
+from pyramid.response import Response
 from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 
 from powerwall.toolchain import ToolChain
+import networkx as nx
+from matplotlib import pyplot as plt
+import mpld3
 
 
 class ToolChainViews:
@@ -41,7 +45,21 @@ class ToolChainViews:
 
         raise exc.HTTPFound(self.request.route_url('toolchain_view', name=name))
 
+    @view_config(route_name='toolchain_network')
+    def network(self):
+        # Get user request
+        toolchain, name = self._get_toolchain()
+
+        # Get the network
+        G = toolchain.get_tool_network()
+
+        # Render it as a tree for JSON purposes
+
+        # Return it as HTML
+        return Response(json=None)
+
 
 def includeme(config):
     config.add_route('toolchain_view', '/toolchain/{name}/view')
     config.add_route('toolchain_run', '/toolchain/{name}/run')
+    config.add_route('toolchain_network', '/toolchain/{name}/network')
