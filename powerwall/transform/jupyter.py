@@ -76,16 +76,16 @@ class JupyterNotebookTransformer(WorkflowTool):
         self.notebook = str(nbformat.writes(nb))
         return data, outputs
 
-    def _add_data(self, nb, inputs, to_display=False):
+    def _add_data(self, nb, inputs, use_placeholder=False):
         """Update the code used to import and export data into this notebook
 
         :param nb: NotebookNode, notebook used to perform the code
         :param input: dict, inputs provided to this nbformat
-        :param to_display: boolean, whether to put in an input / output placeholder
+        :param use_placeholder: boolean, whether to put in an input / output placeholder
         """
 
         # Render the code
-        if to_display:
+        if use_placeholder:
             import_code = "# Placeholder code for inputs"
             export_code = "# Placeholder code for outputs"
         else:

@@ -129,16 +129,17 @@ class WorkflowTool(Document):
             del output[nogo]
         return output
 
-    def get_input(self):
+    def get_input(self, save_results=False):
         """Get the results from the previous step, which are used as input into this transformer
 
+        :param save_results: boolean, whether to ensure the previous tool saves new results
         :return: Dict, results from the previous step. Dictionary at least contains an entry 'data' that matches the
         dataset from the previous step
         """
 
         if self.previous_step is None:
             # Get data from the host workflow
-            data = self.toolchain.extractor.get_data()
+            data = self.toolchain.extractor.get_data(save_results=save_results)
 
             # Return the dictionary
             return {'data': data}
@@ -146,13 +147,14 @@ class WorkflowTool(Document):
         # Get result from previous step
         return self.previous_step.run()
 
-    def run(self, ignore_results=False):
+    def run(self, ignore_results=False, save_results=False):
         """Run an analysis tool
 
         If the tool has already been run, returns cached result
 
         Input:
             :param ignore_results: boolean, whether to redo calculation
+            :param save_results: boolean, whether to save results
         Output:
             :return: dict, result from the analysis tool
         """
@@ -167,7 +169,7 @@ class WorkflowTool(Document):
                 self._result_cache = pickle.loads(self.result)
             else:
                 # Get the inputs
-                inputs = self.get_input()
+                inputs = self.get_input(save_results=save_results)
                 if 'data' not in inputs:
                     raise Exception('Input does not include data field')
                 data = inputs['data']
@@ -178,6 +180,10 @@ class WorkflowTool(Document):
                 outputs['data'] = data
                 self._result_cache = outputs
                 self.last_run = datetime.now()
+
+                # If desired, save results
+                if save_results:
+                    self.save()
 
         # Print out the results
         return self._result_cache

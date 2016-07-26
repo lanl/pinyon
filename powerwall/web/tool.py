@@ -48,7 +48,7 @@ class ToolViews:
         tool, name = self._get_tool()
 
         # Rerun extraction
-        tool.run(ignore_results=True)
+        tool.run(ignore_results=True, save_results=True)
         tool.save()
 
         raise exc.HTTPFound(self.request.route_url('tool_view', id=name))
@@ -64,7 +64,7 @@ class ToolViews:
         data_format = self.request.GET.get('format', 'csv')
 
         # Get the results of the tool
-        res = tool.run()
+        res = tool.run(save_results=True)
 
         # Render into desired format
         output_settings, output_data = DataOutput.prepare_for_output(res['data'], data_format)
@@ -87,7 +87,7 @@ class ToolViews:
         output_name = self.request.matchdict['piece']
 
         # Get that object, or throw a 404
-        outputs = tool.run()
+        outputs = tool.run(save_results=True)
         if output_name not in outputs:
             return exc.HTTPNotFound(detail='No such output: %s'%output_name)
         output = outputs[output_name]
@@ -116,7 +116,7 @@ class ToolViews:
         if output_style == 'html':
             # Parse the notebook as an notebook object
             nb = nbformat.reads(tool.notebook, nbformat.NO_CONVERT)
-            tool._add_data(nb, None, to_display=True)
+            tool._add_data(nb, None, use_placeholder=True)
 
             # Render it as HTML
             ex = HTMLExporter()
