@@ -47,3 +47,18 @@ class TestRequiredField(unittest.TestCase):
         # Check result
         self.assertEquals(1, len(data))
         self.assertEquals([1], data.index)
+
+
+class TestSimpleEval(unittest.TestCase):
+
+    def test_simpleeval(self):
+        # Make a test dataset
+        data = DataFrame([[1, 1], [0, 0]], columns=['a', 'b'])
+
+        # Eliminate the row that
+        trans = SimpleEvalTransformer(eval_string='c = a + 1')
+        data, _ = trans._run(data, {})
+
+        # Check result
+        self.assertEquals(2, len(data))
+        self.assertTrue(all([2, 1] == data['c']))

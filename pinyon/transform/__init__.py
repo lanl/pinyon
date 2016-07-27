@@ -48,3 +48,16 @@ class ColumnAddTransformer(BaseTransformer):
                 raise Exception('Column already in dataset')
             data[col] = Series()
         return data, other_inputs
+
+
+class SimpleEvalTransformer(BaseTransformer):
+    """Run a transformation on the dataset using Panda's eval capability
+
+    Documentation for eval can be found at:
+        http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html
+    """
+
+    eval_string = StringField(required=True)
+
+    def _run(self, data, other_inputs):
+        return data.eval(self.eval_string, inplace=False), other_inputs
