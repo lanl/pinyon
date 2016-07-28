@@ -15,6 +15,7 @@ class DataOutput:
         'csv': {'extension': 'csv', 'pandas': 'to_csv', 'kwargs': {'index': False}},
         'excel': {'extension': 'xlsx', 'pandas': 'to_excel', 'kwargs': {'index': False}},
         'pickle': {'extension': 'pkl', 'pandas': 'to_pickle', 'kwargs': {}},
+        'json': {'extension': 'json', 'pandas': 'to_json', 'kwargs': {}}
     }
     """Data formats known by this class
 
@@ -109,7 +110,7 @@ class ExtractorViews:
         # Send out the data in CSV format
         return Response(
             content_type="application/force-download",
-            content_disposition='attachment; filename=%s.%s'%(name,output_settings['extension']),
+            content_disposition='attachment; filename=%s.%s'%(extractor.name, output_settings['extension']),
             body=output_data
         )
 

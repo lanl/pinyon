@@ -72,7 +72,7 @@ class ToolViews:
         # Send out the data in CSV format
         return Response(
             content_type="application/force-download",
-            content_disposition='attachment; filename=%s.%s' % (name, output_settings['extension']),
+            content_disposition='attachment; filename=%s.%s' % (tool.name, output_settings['extension']),
             body=output_data
         )
 
