@@ -7,7 +7,7 @@ from mongoengine import BinaryField, DictField
 from nbconvert.preprocessors import ExecutePreprocessor
 
 from pinyon.utility import WorkflowTool
-from pyramid_wtforms import fields as wtfields
+from wtforms import fields as wtfields
 
 
 class JupyterNotebookTransformer(WorkflowTool):
@@ -58,19 +58,33 @@ class JupyterNotebookTransformer(WorkflowTool):
     def get_form(self):
         super_form = super(JupyterNotebookTransformer, self).get_form()
 
+        def add_settings(cls):
+            """Add calculation settings to form"""
+            for name,value in self.calc_settings.iteritems():
+                setattr(cls, name, wtfields.StringField(name, default=value))
+            return cls
+
+        @add_settings
         class MyForm(super_form):
             nbfile = wtfields.FileField('Notebook file',
-                                        description='Jupyter notebook to be executed. Must be formatted in the Pinyon file (see examples)',
+                                        description='Jupyter notebook to be executed. Must be formatted in the Pinyon '
+                                                    'file style (see examples). Leave this blank to keep current notebook',
                                         render_kw={'class': 'form-control-file'})
 
+        # Add other fields
         return MyForm
 
     def process_form(self, form, request):
         super(JupyterNotebookTransformer, self).process_form(form, request)
 
         # Read the notebook
-        nbfile = request.POST['nbfile'].file
-        self.notebook = str(nbfile.read())
+        if not type(request.POST['nbfile']) == unicode:
+            nbfile = request.POST['nbfile'].file
+            self.notebook = str(nbfile.read())
+
+        # Read in the calculation settings
+        for name in self.calc_settings.keys():
+            self.calc_settings[name] = form[name].data
 
     def _run(self, data, other_inputs):
         # Combine data into a form to send to the notebook
