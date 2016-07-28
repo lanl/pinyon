@@ -19,6 +19,11 @@
         {% if tool.previous_step %}
             <tr><th>Previous Step</th><td><a href="/tool/{{ tool.previous_step.id }}/view">{{ tool.previous_step.name }}</a></td></tr>
         {% endif %}
+        <tr><th>Next Step(s)</th><td>
+            {% for nt in tool.get_next_steps() %}
+                <a href="/tool/{{ nt.id }}/view">{{ nt.name }}</a>
+            {% endfor %}
+        </td></tr>
     </table>
 
     <h2>Settings</h2>

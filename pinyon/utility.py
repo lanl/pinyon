@@ -147,6 +147,15 @@ class WorkflowTool(Document):
         # Get result from previous step
         return self.previous_step.run()
 
+    def get_next_steps(self):
+        """Get the tools have this tool as a previous step
+
+        Output:
+            :return: List of WorkflowTool objects
+        """
+
+        return WorkflowTool.objects.filter(previous_step=self)
+
     def run(self, ignore_results=False, save_results=False):
         """Run an analysis tool
 
