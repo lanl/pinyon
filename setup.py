@@ -15,6 +15,7 @@ setup(
     license=license,
     install_requires=[
 	'cornice',
+	'jupyter',
         'mongoengine',
         'pandas',
 	'pint',
@@ -24,6 +25,7 @@ setup(
 	'pyramid_debugtoolbar',
         'scipy',
 	'webtest',
+	'wtforms',
 	'xmltodict',
     ],
     packages=find_packages(exclude=('tests', 'docs'))
