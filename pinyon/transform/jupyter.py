@@ -7,6 +7,7 @@ from mongoengine import BinaryField, DictField
 from nbconvert.preprocessors import ExecutePreprocessor
 
 from pinyon.utility import WorkflowTool
+from pyramid_wtforms import fields as wtfields
 
 
 class JupyterNotebookTransformer(WorkflowTool):
@@ -53,6 +54,23 @@ class JupyterNotebookTransformer(WorkflowTool):
         settings.update(self.calc_settings)
 
         return settings
+
+    def get_form(self):
+        super_form = super(JupyterNotebookTransformer, self).get_form()
+
+        class MyForm(super_form):
+            nbfile = wtfields.FileField('Notebook file',
+                                        description='Jupyter notebook to be executed. Must be formatted in the Pinyon file (see examples)',
+                                        render_kw={'class': 'form-control-file'})
+
+        return MyForm
+
+    def process_form(self, form, request):
+        super(JupyterNotebookTransformer, self).process_form(form, request)
+
+        # Read the notebook
+        nbfile = request.POST['nbfile'].file
+        self.notebook = str(nbfile.read())
 
     def _run(self, data, other_inputs):
         # Combine data into a form to send to the notebook

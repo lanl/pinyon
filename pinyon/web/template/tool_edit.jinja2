@@ -1,0 +1,60 @@
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Tool: {{ tool.name }}</title>
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+</head>
+<body>
+    <div class="container">
+        <h1>Tool: {{ tool.name }}</h1>
+
+        <p>Part of the <a href="/toolchain/{{ tool.toolchain.name }}/view">{{ tool.toolchain.name }}</a> toolchain</p>
+
+        <a class="btn btn-primary" role="button" href="/tool/{{ name }}/run">Run Tool</a>
+
+        <p>
+            <table class="table">
+                <tr><th>Name</th><td>{{ tool.name }}</td></tr>
+                <tr><th>Type</th><td>{{ tool.__class__.__name__ }}</td></tr>
+                <tr><th>Description</th><td>{{ tool.description }}</td></tr>
+                <tr><th>Last Run</th><td>{{ tool.last_run }}</td></tr>
+                {% if tool.previous_step %}
+                    <tr><th>Previous Step</th><td><a href="/tool/{{ tool.previous_step.id }}/view">{{ tool.previous_step.name }}</a></td></tr>
+                {% endif %}
+                <tr><th>Next Step(s)</th><td>
+                    {% for nt in tool.get_next_steps() %}
+                        <a href="/tool/{{ nt.id }}/view">{{ nt.name }}</a>
+                    {% endfor %}
+                </td></tr>
+            </table>
+        </p>
+
+        <h2>Settings</h2>
+
+        {% if errors %}
+            <div class="alert alert-danger">
+                <strong>Error! {{ errors }}</strong>
+            </div>
+        {% endif %}
+
+        <form method="POST" action="/tool/{{ tool.id }}/edit" enctype="multipart/form-data">
+
+            {% for field in tool.get_form()() %}
+                <div class="form-group">
+                    {{ field.label }}
+                    {% if field.__class__.__name__ == 'FileField' %}
+                        {{ field() }}
+                    {% else %}
+                        {{ field(class='form-control') }}
+                    {% endif %}
+                    {% if field.description %}
+                        <small class="form-text text-muted">{{ field.description }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+</body>
+</html>

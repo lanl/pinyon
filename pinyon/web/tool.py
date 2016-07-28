@@ -51,7 +51,7 @@ class ToolViews:
         tool.run(ignore_results=True, save_results=True)
         tool.save()
 
-        raise exc.HTTPFound(self.request.route_url('tool_view', id=name))
+        return exc.HTTPFound(self.request.route_url('tool_view', id=name))
 
     @view_config(route_name='tool_data')
     def data(self):
@@ -101,7 +101,6 @@ class ToolViews:
 
     @view_config(route_name='tool_jupyter')
     def render_notebook(self):
-
         # Get the requested tool
         tool, tid = self._get_tool()
 
@@ -126,12 +125,36 @@ class ToolViews:
         elif output_style == 'file':
             return Response(
                 content_type='application/force-download',
-                content_dispsoition='attachment; filename=%s.%s'%(tool.name, 'ipynb'),
-                body=tool.write_notebook(None)
+                content_disposition='attachment; filename=%s.%s'%(tool.name, 'ipynb'),
+                body=str(tool.write_notebook(None))
             )
         else:
             return exc.HTTPBadRequest(detail='Format not recognized: ' + output_style)
 
+    @view_config(route_name='tool_edit', renderer='template/tool_edit.jinja2')
+    def render_edit(self):
+        errors = None
+
+        # Get user request
+        tool, name = self._get_tool()
+
+        # Get the form result
+        form = tool.get_form()(self.request.POST)
+
+        # Process it
+        if self.request.method == 'POST' and form.validate():
+            tool.process_form(form, self.request)
+            try:
+                tool.save()
+                return exc.HTTPFound(self.request.route_url('tool_view', id=name))
+            except Exception, e:
+                errors = e.message
+
+        return {
+            'name': name,
+            'tool': tool,
+            'errors': errors
+        }
 
 def includeme(config):
     config.add_route('tool_view', '/tool/{id}/view')
@@ -139,3 +162,4 @@ def includeme(config):
     config.add_route('tool_data', '/tool/{id}/data')
     config.add_route('tool_output', '/tool/{id}/output/{piece}')
     config.add_route('tool_jupyter', '/tool/{id}/jupyter')
+    config.add_route('tool_edit', '/tool/{id}/edit')

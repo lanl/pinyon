@@ -4,6 +4,8 @@ from copy import deepcopy
 
 from mongoengine.fields import EmbeddedDocumentField, ListField, StringField, DateTimeField, ReferenceField, BinaryField
 from mongoengine.document import EmbeddedDocument, Document
+from wtforms.form import Form
+from wtforms import fields as wtfields
 
 from pinyon import KnownClass
 
@@ -129,6 +131,35 @@ class WorkflowTool(Document):
             del output[nogo]
         return output
 
+    def get_form(self):
+        """Get a WTForm class that can be used to edit this class
+
+        :return: WTForm, used for editting
+        """
+
+        class EditForm(Form):
+            name = wtfields.StringField('Tool Name', default=self.name,
+                                        description='Simple name for this tool')
+            description = wtfields.StringField('Tool Description', default=self.description,
+                                               render_kw={'type': 'textarea'},
+                                               description='Longer form description of what this tool does')
+
+        return EditForm
+
+    def process_form(self, form, request):
+        """Given a form, change the settings
+
+        :param form: WTFrom.form.Form, form with new data for the class
+        :param request: Request, request accompanying the form submission
+        """
+
+        # Make the changes
+        self.name = form.name.data
+        self.description = form.description.data
+
+        # Clear the results
+        self.clear_results()
+
     def get_input(self, save_results=False):
         """Get the results from the previous step, which are used as input into this transformer
 
@@ -215,6 +246,7 @@ class WorkflowTool(Document):
 
     def clear_results(self):
         """Clear any cached results"""
+        self.last_run = None
         self._result_cache = None
         self.result = None
 
