@@ -58,7 +58,7 @@
         {% if is_jupyter %}
             <h2>Jupyter Notebook</h2>
 
-            <p>This module uses a Jupyter notebok to perform calculations. Download options:</p>
+            <p>This module uses a Jupyter notebook to perform calculations. Download options:</p>
 
             <ul>
                 <li><a href="/tool/{{ tool.id }}/jupyter">View in HTML</a></li>
@@ -67,8 +67,27 @@
 
         {% endif %}
 
+        {% if is_decision %}
+            <h2>Decisions</h2>
+            <p>List of the decisions that have been recorded in this tool, and the reasons behind them</p>
+
+            <table class="table">
+                <thead>
+                    <tr><th>Entry</th><th>Column</th><th>Original Value</th><th>New Value</th><th>Support</th></tr>
+                </thead>
+                <tbody>
+                {% for (entry, column), (old_val, new_val, reason) in tool.get_decisions().iteritems() %}
+                    <tr><td>{{ entry }}</td><td>{{ column }}</td><td>{{ old_val }}</td><td>{{ new_val }}</td><td>{{ reason }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <a class="btn btn-primary" role="button" href="/tool/{{ name }}/decision">Update Decisions</a>
+        {% endif %}
+
+        <h2>Outputs</h2>
         {% if tool.last_run %}
-            <h2>Outputs</h2>
+
 
             <p>Outputs from the tool. Download links provide the data in Python pickle format</p>
 
@@ -80,21 +99,19 @@
 
             <h2>Data</h2>
 
-             <p>
-                <form action="/tool/{{ name }}/data">
-                    Download as
-                    <select name = "format">
-                        {% for opt in format_options %}
-                            <option value="{{ opt }}">{{ opt }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit">Download</button>
-                </form>
-            </p>
+            <form action="/tool/{{ name }}/data" id="download-form">
+                Download as
+                <select name = "format" id="download-form_format-selector">
+                    {% for opt in format_options %}
+                        <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Download</button>
+            </form>
 
             {{ tool.get_data().to_html() | safe }}
         {% else %}
-            <strong>Not yet run.</strong>
+            <p><strong>Not yet run.</strong></p>
         {% endif %}
     </div>
 

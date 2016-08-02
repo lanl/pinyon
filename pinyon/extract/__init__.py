@@ -33,20 +33,23 @@ class BaseExtractor(Document):
     result = StringField(required=False)
     """Storage for the pickled form of _data_cache"""
     
-    def get_data(self, ignore_cache=False):
+    def get_data(self, ignore_cache=False, save_results=False):
         """Extract data from a certain resource, assemble
         data into a tabular format
-        
+
+        Input:
+            :param ignore_cache: boolean, whether to ignore any previously-saved result
+            :param save_results: boolean, whether to save the extractor
+
         Output:
             Panda's DataFrame object
         """
 
         # Check if the cache should be ignored
         if ignore_cache:
+            # If so, clear it
             self.result = None
-            self._data_cache = self._run_extraction()
-            self.last_exported = datetime.datetime.now()
-            return self._data_cache
+            self._data_cache = None
 
         # Either extract or use the cache
         if self._data_cache is not None:
@@ -57,6 +60,8 @@ class BaseExtractor(Document):
         else:
             self._data_cache = self._run_extraction()
             self.last_exported = datetime.datetime.now()
+            if save_results:
+                self.save()
         return self._data_cache
 
     def _run_extraction(self):

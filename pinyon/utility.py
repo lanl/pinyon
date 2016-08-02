@@ -170,13 +170,13 @@ class WorkflowTool(Document):
 
         if self.previous_step is None:
             # Get data from the host workflow
-            data = self.toolchain.extractor.get_data()
+            data = self.toolchain.extractor.get_data(save_results=save_results)
 
             # Return the dictionary
             return {'data': data}
 
         # Get result from previous step
-        return self.previous_step.run()
+        return self.previous_step.run(save_results=save_results)
 
     def get_next_steps(self):
         """Get the tools have this tool as a previous step

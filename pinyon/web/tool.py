@@ -7,9 +7,11 @@ from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 import cPickle as pickle
 
+from pinyon.transform.decision import HTMLDecisionTracker
 from pinyon.transform.jupyter import JupyterNotebookTransformer
 from pinyon.utility import WorkflowTool
 from .extract import DataOutput
+import pandas as pd
 
 
 class ToolViews:
@@ -37,7 +39,8 @@ class ToolViews:
             'name': name,
             'tool': tool,
             'format_options': DataOutput.known_data_formats.keys(),
-            'is_jupyter': isinstance(tool, JupyterNotebookTransformer)
+            'is_jupyter': isinstance(tool, JupyterNotebookTransformer),
+            'is_decision': isinstance(tool, HTMLDecisionTracker)
         }
 
     @view_config(route_name='tool_run')
@@ -156,6 +159,25 @@ class ToolViews:
             'errors': errors
         }
 
+    @view_config(route_name='tool_decision')
+    def handle_decisions(self):
+
+        # Get user request
+        tool, name = self._get_tool()
+
+        # Check that it is a HTML decision tool
+        if not isinstance(tool, HTMLDecisionTracker):
+            return exc.HTTPNotAcceptable(detail='Tool is not a HTML decision tracker')
+
+        if self.request.method == 'POST':
+            # Pass the output field  to the tool
+            tool.process_results(self.request.params['output-field'], save_results=True)
+
+            return exc.HTTPFound(self.request.route_url('tool_run', id=name))
+
+        return Response(tool.get_html_tool())
+
+
 def includeme(config):
     config.add_route('tool_view', '/tool/{id}/view')
     config.add_route('tool_run', '/tool/{id}/run')
@@ -163,3 +185,4 @@ def includeme(config):
     config.add_route('tool_output', '/tool/{id}/output/{piece}')
     config.add_route('tool_jupyter', '/tool/{id}/jupyter')
     config.add_route('tool_edit', '/tool/{id}/edit')
+    config.add_route('tool_decision', '/tool/{id}/decision')

@@ -30,7 +30,8 @@ class ToolChain(Document):
         super(ToolChain, self).__init__(*args, **kwargs)
 
         # Add to repo
-        KnownClass.register_class(self)
+        if 'skip_register' in kwargs and not kwargs['skip_register']:
+            KnownClass.register_class(self)
 
     def get_all_tools(self):
         """Get all `WorkflowTool` objects associated with this workflow"""

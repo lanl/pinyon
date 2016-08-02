@@ -15,7 +15,7 @@ class DataOutput:
         'csv': {'extension': 'csv', 'pandas': 'to_csv', 'kwargs': {'index': False}},
         'excel': {'extension': 'xlsx', 'pandas': 'to_excel', 'kwargs': {'index': False}},
         'pickle': {'extension': 'pkl', 'pandas': 'to_pickle', 'kwargs': {}},
-        'json': {'extension': 'json', 'pandas': 'to_json', 'kwargs': {}}
+        'json': {'extension': 'json', 'pandas': 'to_json', 'kwargs': {'orient': 'values'}}
     }
     """Data formats known by this class
 
