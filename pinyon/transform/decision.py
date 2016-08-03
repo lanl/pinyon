@@ -1,6 +1,8 @@
+from pinyon.transform.jupyter import JupyterNotebookTransformer
 from ..utility import WorkflowTool
 
 import inspect
+from jupyter import run_notebook
 import cPickle as pickle
 import os
 
@@ -47,6 +49,9 @@ class HTMLDecisionTracker(WorkflowTool):
     html_template = BinaryField(required=True)
     """Holds the HTML template being used as the decision making tool"""
 
+    columns = ListField(StringField())
+    """Which columns to display"""
+
     @classmethod
     def load_template(cls, name, description, path, skip_register=False):
         """Load a HTML template from disk, use to intialize a decision tool
@@ -86,16 +91,19 @@ class HTMLDecisionTracker(WorkflowTool):
                                                description='Jinja2 template used to render the decision form.',
                                                render_kw={'class': 'form-control-file'}
                                                )
+            column_names = wtfields.StringField('Columns',
+                                                default=", ".join(self.columns),
+                                                description='Names of columns to be added, separated by commas')
 
         return MyForm
 
     def process_form(self, form, request):
         super(HTMLDecisionTracker, self).process_form(form, request)
 
-        # Read in the tempalte
+        # Read in the template
         if not type(request.POST['html_template']) == unicode:
             self.html_template = str(request.POST['html_template'].file.read())
-            
+        self.columns= [x.strip() for x in form.column_names.data.split(",")]
 
     def get_decisions(self):
         """Get the dictionary of all decisions that were made
@@ -110,8 +118,10 @@ class HTMLDecisionTracker(WorkflowTool):
         else:
             return dict()
 
-    def get_html_tool(self):
+    def get_html_tool(self, **kwargs):
         """Generate the HTML tool used to make decisions
+
+        Keyword arguments are extra arguments being passed to the template
 
         :return: Valid HTML page"""
 
@@ -128,7 +138,8 @@ class HTMLDecisionTracker(WorkflowTool):
         data = inputs['data']
 
         # Render data as html
-        output = data.to_html()
+        chosen_columns = None if len(self.columns) == 0 else self.columns
+        output = data.to_html(columns=chosen_columns, na_rep='Unknown')
         soup = BeautifulSoup(output, 'lxml')
         table = soup.find('table')
 
@@ -137,8 +148,11 @@ class HTMLDecisionTracker(WorkflowTool):
 
         #  Add coordinates to the table
         columns = ['index']
-        columns.extend(data.columns)
-        for row, (rid,row_data) in zip(table.find('tbody').find_all('tr'), data.iterrows()):
+        if self.columns is None:
+            columns.extend(data.columns)
+        else:
+            columns.extend(self.columns)
+        for row, (rid, row_data) in zip(table.find('tbody').find_all('tr'), data.iterrows()):
             # Add coordinate to the row
             row['entry_key'] = rid if self.entry_key is None else str(row_data[self.entry_key])
 
@@ -163,6 +177,7 @@ class HTMLDecisionTracker(WorkflowTool):
             data=data,
             data_html=str(table),
             tool=self,
+            **kwargs
         )
 
     def process_results(self, result_data, save_results=False):
@@ -171,6 +186,7 @@ class HTMLDecisionTracker(WorkflowTool):
         Decisions are returned as an HTML table. Cells that have been changed have a class of
 
         :param result_data: string, table rows from the decision table
+        :param save_results: boolean, whether to save results after processing
         """
 
         # Get the soup!
@@ -222,7 +238,11 @@ class HTMLDecisionTracker(WorkflowTool):
                 entry_id, entry = hits.iterrows().next()
 
             # Make the change
-            output_data.loc[entry_id, column] = new_value
+            if new_value.lower() == "true":
+                new_value = True
+            elif new_value.lower() == "false":
+                new_value = False
+            output_data.ix[entry_id, 'BeforePeak'] = new_value
 
         return output_data, other_inputs
 
@@ -237,3 +257,53 @@ class HTMLDecisionTracker(WorkflowTool):
 
         # Run the normal save
         super(HTMLDecisionTracker, self).save()
+
+
+class BokehHTMLDecisionTracker(HTMLDecisionTracker):
+    """A decision tracker that includes a Bokeh decision tracker
+
+    Uses a Jupyter notebook in the background to generate the scripts and other data required to run the Bokeh plot"""
+
+    notebook = BinaryField(required=True)
+    """Notebook used to make the """
+
+    def get_settings(self):
+        last = super(BokehHTMLDecisionTracker, self).get_settings()
+
+        del last['notebook']
+
+        return last
+
+    def load_notebook(cls, name, description, path):
+        if path is None:
+            path = os.path.join(
+                os.path.dirname(inspect.getfile(cls.__class__)),
+                'jupyter_templates',
+                'python2_template.ipynb'
+            )
+        return JupyterNotebookTransformer.load_notebook(name, description, path)
+
+    def get_html_tool(self, **kwargs):
+        # First, run the underlying notebook to get the Bokeh plot information
+        self.notebook, plot_data = run_notebook(self.notebook, self.get_input(), {})
+
+        # Pass it on the tool renderer
+        return super(BokehHTMLDecisionTracker, self).get_html_tool(**plot_data)
+
+    def get_form(self):
+        super_form = super(BokehHTMLDecisionTracker, self).get_form()
+
+        class MyForm(super_form):
+            notebook = wtfields.FileField('Notebook',
+                                           description='Jupyter notebook used to generate the Bokeh figure components.',
+                                           render_kw={'class': 'form-control-file'}
+                                         )
+
+        return MyForm
+
+    def process_form(self, form, request):
+        super(BokehHTMLDecisionTracker, self).process_form(form, request)
+
+        # Read in the template
+        if not type(request.POST['notebook']) == unicode:
+            self.notebook = str(request.POST['notebook'].file.read())
