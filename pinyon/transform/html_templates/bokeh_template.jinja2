@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tool.name }}</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+
+    <!-- Stuff to add -->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css"/>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+
+    <!-- Bokeh includes -->
+    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.0.min.css" type="text/css" />
+	<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.0.min.css" type="text/css" />
+    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.0.min.js"></script>
+	<script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.0.min.js"></script>
+
+    <!-- Special-purpose classes -->
+    <style>
+        .editedCell {
+            background-color: #2db300;
+        }
+        .currentEntry {
+            background-color: #6a6a6a;
+        }
+    </style>
+
+    <!-- Render the table -->
+    <script>
+        $(document).ready(function() {
+            // Get link to data table
+            var table = $('#pinyondata');
+            // Make datatable compact
+            table.addClass('display');
+            table.addClass('compact');
+
+
+            // Make the content of the cells editable
+            //   Adapted from: http://ssiddique.info/jquery-and-editable-html-table.html#ixzz4G6CSFHKy
+
+            var cancelFunction = function() {
+                // Turn off the decision form
+                $("#notes-field").css("display", "none");
+
+                // Store the current value
+                var entry = $(".currentEntry").first();
+                entry.text(entry.attr('last-value'));
+
+                // Make this not the current entry
+                entry.removeClass('currentEntry');
+            };
+
+            var editFunction = function () {
+                // If the edit screen is open, close it
+                var notesField = $("#notes-field");
+                if (notesField.css("display") != "none") {
+                    cancelFunction();
+                }
+
+                // Mark this entry as the currentEntry
+                $(this).addClass('currentEntry');
+
+                // Store the current value
+                $(this).attr('last-value', $(this).text());
+
+                // Print the current value
+                if (! $(this)[0].hasAttribute("original-value")) {
+                    $(this).attr('original-value', $(this).attr('last-value'));
+                }
+                $('#original-value-display').text($(this).attr('original-value'));
+
+                // Make the notes field visible
+                notesField.css("display", "block");
+                $("#current-entry").text($(this).parent().attr('entry_key'));
+
+                // Update the chart
+                $("#{{ button_id }}").click();
+                $("#{{ button_id }}").css("display", "none");
+
+                // Add current notes to the notes input field
+                if ($(this)[0].hasAttribute('decision-notes')) {
+                    $("#decision-notes").val($(this).attr('decision-notes'));
+                } else {
+                    $("#decision-notes").val('');
+                }
+
+                // Change content to a HTML form
+                $(this).html("<input type='text' value='" + $(this).attr('last-value') + "' />");
+                var newField = $(this).children().first();
+                newField.focus();
+
+                // Make the save function
+                $('#save-button').click(function () {
+                    // Turn off the decision field
+                    notesField.css("display", "none");
+
+                    // Store the changed value (if applicable)
+                    var newValue = newField.val();
+
+                    if (newValue != newField.parent().attr('original-value')) {
+                        newField.parent().addClass("editedCell");
+                    } else {
+                        newField.parent().removeClass("editedCell");
+                    }
+
+                    // No longer the current entry
+                    newField.parent().removeClass("currentEntry");
+
+                    // Store the notes and new value
+                    newField.parent().attr("decision-notes", $("#decision-notes").val());
+                    newField.parent().text(newValue);
+                });
+
+                // Make the reset button
+                $('#reset-button').click(function() {
+                    // Turn off the decision field
+                    notesField.css("display", "none");
+
+                    // No longer the current entry
+                    newField.parent().removeClass("currentEntry");
+
+                    // Write it out
+                    newField.parent().removeClass("editedCell");
+
+                    // Store the notes and new value
+                    newField.parent().removeAttr("decision-notes");
+                    newField.parent().text(newField.parent().attr('original-value'));
+                });
+
+                // Cancel by either clicking on the
+                $("#cancel-button").click(function () {
+                    cancelFunction();
+                });
+            };
+
+            table.find('td').dblclick(editFunction);
+
+            // Render the datatable in a prettier format
+            table = table.DataTable();
+
+            // Give orders the "submit" button
+            $("#submit-button").click(function() {
+                $("#output-field").val($('<div/>').append(table.$('tr').clone()).html());
+                $("#output-form").submit();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Editable Data Table</h1>
+        <p>Double click on a cell to edit it. Click submit to send it results</p>
+
+        <div id="notes-field" style="display:none; padding-left: 15%">
+            <div style="margin-bottom: 90px;">
+                {{ div }}
+            </div>
+            {{ scripts }}
+
+            <p style="font-size:24px">Currently Editing: <span id="current-entry"></span></p>
+            <div style="font-size: 20px;">
+                <p>Notes: <input type="text" id="decision-notes"/>
+                </br>Original Value: <span id="original-value-display"></span></p>
+
+                <p>
+                    <button id="save-button" type="button" class="btn btn-success">Save</button>
+                    <button id="cancel-button" type="button" class="btn">Cancel</button>
+                    <button id="reset-button" type="button" class="btn btn-danger">Reset</button>
+                </p>
+            </div>
+        </div>
+
+        {{ data_html }}
+
+        <button style="font-size: 24px" id="submit-button" type="button" class="btn btn-primary">Submit Decisions</button>
+
+        <form id="output-form" action="/tool/{{ tool.id }}/decision" method="POST">
+            <input type="hidden" name="output-field" id="output-field"/>
+        </form>
+
+    </div>
+</body>
+</html>
