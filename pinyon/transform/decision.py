@@ -158,7 +158,7 @@ class HTMLDecisionTracker(WorkflowTool):
 
             # Process the data entries
             for cell, col in zip(row.find_all(), columns):
-                # Save the value in the HTML tage
+                # Save the value in the HTML tag
                 cell['column'] = col
 
                 # Check for any decisions
@@ -242,7 +242,7 @@ class HTMLDecisionTracker(WorkflowTool):
                 new_value = True
             elif new_value.lower() == "false":
                 new_value = False
-            output_data.ix[entry_id, 'BeforePeak'] = new_value
+            output_data.ix[entry_id, column] = new_value
 
         return output_data, other_inputs
 
