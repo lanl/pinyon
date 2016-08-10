@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tool.name }}</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+
+    <!--- Stuff to add -->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css"/>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+
+    <!-- Special-purpose classes -->
+    <style>
+        .editedCell {
+            background-color: #2db300;
+        }
+        .currentEntry {
+            background-color: #6a6a6a;
+        }
+    </style>
+
+    <!-- Render the table -->
+    <script>
+        $(document).ready(function() {
+            // Get link to data table
+            var table = $('#pinyondata');
+
+            // Make datatable compact
+            table.addClass('display');
+            table.addClass('compact');
+
+            // Add a new row
+            table.find('tbody').first().find('tr').each(function(index) {
+                // Get the entry key for this row
+                var key = $(this).attr('entry_key');
+
+                var submitButton = document.createElement("td");
+                submitButton.innerHTML = "<a class=\"btn btn-primary btn-sm\" role=\"button\" href=\"/tool/{{ tool.id }}/decision?entry="
+                        + key + "\">Edit</a>"
+                $(this).append(submitButton);
+            });
+
+            // Add new top to the editor
+            table.find('thead').first().find('tr').each(function(index) {
+               $(this).append("<th>Edit</th>");
+            });
+
+            // Render the datatable in a prettier format
+            table = table.DataTable();
+
+            // Give orders the "submit" button
+            $("#submit-button").click(function() {
+                $("#output-field").val($('<div/>').append(table.$('tr').clone()).html());
+                $("#output-form").submit();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Entry Selection Table</h1>
+        <p>Click on submit button to edit entry</p>
+
+        {{ data_html }}
+    </div>
+</body>
+</html>

@@ -76,8 +76,8 @@
                     <tr><th>Entry</th><th>Column</th><th>Original Value</th><th>New Value</th><th>Support</th></tr>
                 </thead>
                 <tbody>
-                {% for (entry, column), (old_val, new_val, reason) in tool.get_decisions().iteritems() %}
-                    <tr><td>{{ entry }}</td><td>{{ column }}</td><td>{{ old_val }}</td><td>{{ new_val }}</td><td>{{ reason }}</td></tr>
+                {% for (entry, column), decision in tool.get_decisions().iteritems() %}
+                    <tr><td>{{ entry }}</td><td>{{ column }}</td><td>{{ decision[0] }}</td><td>{{ decision[1] }}</td><td>{{ decision[2]}}</td></tr>
                 {% endfor %}
                 </tbody>
             </table>

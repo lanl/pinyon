@@ -7,11 +7,12 @@ from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 import cPickle as pickle
 
-from pinyon.transform.decision import HTMLDecisionTracker
+from pinyon.transform.decision import HTMLDecisionTracker, SingleEntryHTMLDecisionTracker
 from pinyon.transform.jupyter import JupyterNotebookTransformer
 from pinyon.utility import WorkflowTool
 from .extract import DataOutput
 import pandas as pd
+from ..transform.jupyter import add_data
 
 
 class ToolViews:
@@ -118,7 +119,7 @@ class ToolViews:
         if output_style == 'html':
             # Parse the notebook as an notebook object
             nb = nbformat.reads(tool.notebook, nbformat.NO_CONVERT)
-            tool._add_data(nb, None, use_placeholder=True)
+            add_data(nb, None, None, use_placeholder=True)
 
             # Render it as HTML
             ex = HTMLExporter()
@@ -169,11 +170,18 @@ class ToolViews:
         if not isinstance(tool, HTMLDecisionTracker):
             return exc.HTTPNotAcceptable(detail='Tool is not a HTML decision tracker')
 
+        # Check if decisions were made
         if self.request.method == 'POST':
             # Pass the output field  to the tool
             tool.process_results(self.request.params['output-field'], save_results=True)
 
             return exc.HTTPFound(self.request.route_url('tool_run', id=name))
+
+        # Check if this is tool for editing a single entry, and if an entry was requested
+        if 'entry' in self.request.GET and isinstance(tool, SingleEntryHTMLDecisionTracker):
+            # Return the page for that entry
+            key = self.request.GET['entry']
+            return Response(tool.get_entry_editing_tool(key))
 
         return Response(tool.get_html_tool())
 

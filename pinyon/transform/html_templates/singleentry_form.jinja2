@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tool.name }}</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+
+    <!--- Stuff to add -->
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css"/>
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+
+    <!-- Special-purpose classes -->
+    <style>
+        .editedCell {
+            background-color: #2db300;
+        }
+        .currentEntry {
+            background-color: #6a6a6a;
+        }
+    </style>
+
+    <!-- Render the table -->
+    <script>
+        $(document).ready(function() {
+            // Give orders the "submit" button
+            $("#submit-button").click(function() {
+                // Create something to store the results
+                var results = {};
+
+                // Look for entries that have been changed
+                $(".entryRow").each(function(index) {
+                    // Get the form input and decision cells
+                    var formCell = $(this).find('.entryInput').first();
+                    var decisionCell = $(this).find('.entryDecision').first();
+
+                    // Check if the decision has changed
+                    var key = JSON.stringify(["{{ entry_key }}", $(this).attr('name')]);
+                    if (formCell.attr('original-value') !== formCell.val()) {
+                        results[key] = [formCell.attr('original-value'), formCell.val(), decisionCell.val()];
+                    } else {
+                        results[key] = [];
+                    }
+                });
+
+                // Send something
+                console.log(results);
+                $("#output-field").val(JSON.stringify(results));
+                $("#output-form").submit();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Editable Data Table</h1>
+        <p>Double click on a cell to edit it. Click submit to send it results</p>
+
+        <p>
+            <form id="editTable">
+                <table class="table">
+                    <thead>
+                        <tr><th>Data</th><th>Value</th><th>Decision Notes</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for col in entry.keys() %}
+                        <tr class="entryRow" name="{{ col }}">
+                            <th>{{ col }}</th>
+                            <td><input class="entryInput" type="text" original-value="{{ entry[col] }}" value="{{ entry[col] }}"></td>
+                            <td><input class="entryDecision" type="text" name="{{ col }}-notes"></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </p>
+
+
+        <button style="font-size: 20px" id="submit-button" type="button" class="btn btn-primary">Submit Decisions</button>
+
+        <form id="output-form" action="/tool/{{ tool.id }}/decision" method="POST">
+            <input type="hidden" name="output-field" id="output-field"/>
+        </form>
+
+    </div>
+</body>
+</html>

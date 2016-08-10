@@ -1,9 +1,10 @@
 from pinyon.transform.jupyter import JupyterNotebookTransformer
 from ..utility import WorkflowTool
+from .jupyter import run_notebook
 
-import inspect
-from jupyter import run_notebook
 import cPickle as pickle
+import inspect
+import json
 import os
 
 from bs4 import BeautifulSoup
@@ -35,7 +36,7 @@ class HTMLDecisionTracker(WorkflowTool):
     """A dictionary holding records of the decisions made
 
     Key of each entry is a tuple (key, column) defining where the change was made and the value is a tuple defining the
-     decision that was made (old_value, new_value, notes). Where:
+     decision that was made (old_value, new_value, notes). The decision tuple may contain additional fields Where:
         key -> Key for this entry
         column -> Column of the record being adjusted
         old_value -> Original value
@@ -227,7 +228,10 @@ class HTMLDecisionTracker(WorkflowTool):
             self._decisions_cache = pickle.loads(self.decisions)
 
         # Apply them
-        for (entry_id, column), (old_value, new_value, reasons) in self._decisions_cache.iteritems():
+        for (entry_id, column), decision in self._decisions_cache.iteritems():
+            # Get the new_value
+            new_value = decision[1]
+
             # Lookup entry ID if needed
             if self.entry_key is not None:
                 hits = data.query('%s == "%s"'%(self.entry_key, entry_id))
@@ -265,7 +269,7 @@ class BokehHTMLDecisionTracker(HTMLDecisionTracker):
     Uses a Jupyter notebook in the background to generate the scripts and other data required to run the Bokeh plot"""
 
     notebook = BinaryField(required=True)
-    """Notebook used to make the """
+    """Notebook used to make the visualization"""
 
     def get_settings(self):
         last = super(BokehHTMLDecisionTracker, self).get_settings()
@@ -279,7 +283,7 @@ class BokehHTMLDecisionTracker(HTMLDecisionTracker):
             path = os.path.join(
                 os.path.dirname(inspect.getfile(cls.__class__)),
                 'jupyter_templates',
-                'python2_template.ipynb'
+                'bokeh_template.ipynb'
             )
         return JupyterNotebookTransformer.load_notebook(name, description, path)
 
@@ -307,3 +311,87 @@ class BokehHTMLDecisionTracker(HTMLDecisionTracker):
         # Read in the template
         if not type(request.POST['notebook']) == unicode:
             self.notebook = str(request.POST['notebook'].file.read())
+
+
+class SingleEntryHTMLDecisionTracker(HTMLDecisionTracker):
+    """Tool that generates separate pages for editing each entry"""
+
+    entry_html_template = BinaryField(required=True)
+    """Template of HTML page used to edit entries"""
+
+    def get_html_tool(self, **kwargs):
+        """Get a form that is nothing but a table with buttons for each entry"""
+
+        return super(SingleEntryHTMLDecisionTracker, self).get_html_tool()
+
+    def get_entry_editing_tool(self, entry_key, **kwargs):
+        """Generate a page for editing certain entry"""
+
+        # Get the input data to this tool
+        inputs = self.get_input()
+        data = inputs['data']
+
+        # Get the entry
+        if self.entry_key is not None:
+            hits = data.query('%s == "%s"' % (self.entry_key, entry_key))
+            if len(hits) == 0:
+                raise Exception('Entry %s not found' % entry_key)
+            elif len(hits) > 1:
+                raise Exception('More than one hit for entry %s' % entry_key)
+            entry_id, entry = hits.iterrows().next()
+        else:
+            entry = data.ix[entry_key]
+
+        # Get the template
+        env = Environment(loader=DictLoader({'my_template': self.entry_html_template}))
+        template = env.get_template('my_template')
+
+        # Render away!
+        return template.render(
+            entry=entry,
+            entry_key=entry_key,
+            tool=self,
+            **kwargs
+        )
+
+    def process_results(self, result_data, save_results=False):
+        """Process results for a single entry
+
+        Expects the result data to be a JSON object holding the decisions recorded from an entry form. As Javascript
+        objects to not support objects (i.e., tuples) as keys, the key in this dictionary is expected to be json-ized.
+
+        If the value for a decision is an empty string, it will be deleted from the decision records (if present).
+        """
+
+        # Load decisions to cache, if not already there
+        if self._decisions_cache is None:
+            self._decisions_cache = pickle.loads(self.decisions)
+
+        # Unpack the results
+        decisions_to_process = json.loads(result_data)
+
+        # Process all decisions
+        for jsoned_key, decision in decisions_to_process.iteritems():
+            # Unload the key
+            key = tuple(json.loads(jsoned_key))
+            if self.entry_key is None:
+                key[0] = int(key[0])
+
+            # If the value is an empty array, delete the decision from the decisions table
+            if len(decision) == 0:
+                if key in self._decisions_cache:
+                    del self._decisions_cache[key]
+            else:
+                print decision
+                self._decisions_cache[key] = decision
+
+        # Save, if desired
+        if save_results:
+            self.save()
+
+
+class SingleEntryBokehHTMLDecisionTracker(SingleEntryHTMLDecisionTracker):
+    """Single entry editor that generates a Bokeh figure for the entry-editing pages"""
+
+    notebook = BinaryField(required=True)
+    """Notebook used to generate the visualization"""
