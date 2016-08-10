@@ -1,16 +1,16 @@
-from pinyon.transform.jupyter import JupyterNotebookTransformer
-from ..utility import WorkflowTool
-from .jupyter import run_notebook
-
 import cPickle as pickle
 import inspect
 import json
 import os
-
 from bs4 import BeautifulSoup
+
 from jinja2 import Environment, DictLoader
 from mongoengine.fields import *
 from wtforms import fields as wtfields
+
+from pinyon.transform.jupyter import JupyterNotebookTransformer
+from .jupyter import run_notebook
+from ..utility import WorkflowTool
 
 
 class HTMLDecisionTracker(WorkflowTool):
@@ -106,6 +106,29 @@ class HTMLDecisionTracker(WorkflowTool):
             self.html_template = str(request.POST['html_template'].file.read())
         self.columns= [x.strip() for x in form.column_names.data.split(",")]
 
+    def get_entry(self, entry_key):
+        """Get a certain entry in the input dataset
+
+        :param entry_key: int or String, either the entry ID or a string that shoudl match `self.entry_key`
+        :return: Series, entry in question
+        """
+        # Get the input dataset
+        inputs = self.get_input()
+        data = inputs['data']
+
+        # Get the entry
+        if self.entry_key is not None:
+            hits = data.query('%s == "%s"' % (self.entry_key, entry_key))
+            if len(hits) == 0:
+                raise Exception('Entry %s not found' % entry_key)
+            elif len(hits) > 1:
+                raise Exception('More than one hit for entry %s' % entry_key)
+            entry_id, entry = hits.iterrows().next()
+        else:
+            entry = data.ix[entry_key]
+
+        return entry
+
     def get_decisions(self):
         """Get the dictionary of all decisions that were made
 
@@ -118,6 +141,22 @@ class HTMLDecisionTracker(WorkflowTool):
             return self._decisions_cache
         else:
             return dict()
+
+    def get_decisions_for_entry(self, entry_key):
+        """Get all the decisions related to a certain entry
+
+        :param entry_key: int or string, key to entry of interest
+        :return: dict, where key is the column being changed, and the value is the decision parameters
+        """
+
+        output = dict()
+        for dec_key, value in self.get_decisions().iteritems():
+            print dec_key[0], entry_key
+            if dec_key[0] != entry_key: continue
+
+            output[dec_key[1]] = value
+
+        return output
 
     def get_html_tool(self, **kwargs):
         """Generate the HTML tool used to make decisions
@@ -168,8 +207,8 @@ class HTMLDecisionTracker(WorkflowTool):
                     decision = self._decisions_cache[(row['entry_key'], col)]
 
                     # Mark the decision
-                    cell.string = decision[1]
-                    cell['original-value'] = decision[0]
+                    cell.string = str(decision[1])
+                    cell['original-value'] = str(decision[0])
                     cell['class'] = ['editedCell']
                     cell['decision-notes'] = decision[2]
 
@@ -241,11 +280,12 @@ class HTMLDecisionTracker(WorkflowTool):
                     raise Exception('More than one hit for entry %s'%entry_id)
                 entry_id, entry = hits.iterrows().next()
 
-            # Make the change
-            if new_value.lower() == "true":
-                new_value = True
-            elif new_value.lower() == "false":
-                new_value = False
+            # Change the type, if needed
+            if isinstance(new_value, str):
+                if new_value.lower() == "true":
+                    new_value = True
+                elif new_value.lower() == "false":
+                    new_value = False
             output_data.ix[entry_id, column] = new_value
 
         return output_data, other_inputs
@@ -319,6 +359,31 @@ class SingleEntryHTMLDecisionTracker(HTMLDecisionTracker):
     entry_html_template = BinaryField(required=True)
     """Template of HTML page used to edit entries"""
 
+    def get_settings(self):
+        last = super(SingleEntryHTMLDecisionTracker, self).get_settings()
+
+        del last['entry_html_template']
+
+        return last
+
+    def get_form(self):
+        super_form = super(SingleEntryHTMLDecisionTracker, self).get_form()
+
+        class MyForm(super_form):
+            entry_html_template = wtfields.FileField('Entry HTML Template',
+                                          description='Template for a form for editing a single entry',
+                                          render_kw={'class': 'form-control-file'}
+                                          )
+
+        return MyForm
+
+    def process_form(self, form, request):
+        super(SingleEntryHTMLDecisionTracker, self).process_form(form, request)
+
+        # Read in the template
+        if not type(request.POST['entry_html_template']) == unicode:
+            self.entry_html_template = str(request.POST['entry_html_template'].file.read())
+
     def get_html_tool(self, **kwargs):
         """Get a form that is nothing but a table with buttons for each entry"""
 
@@ -328,19 +393,7 @@ class SingleEntryHTMLDecisionTracker(HTMLDecisionTracker):
         """Generate a page for editing certain entry"""
 
         # Get the input data to this tool
-        inputs = self.get_input()
-        data = inputs['data']
-
-        # Get the entry
-        if self.entry_key is not None:
-            hits = data.query('%s == "%s"' % (self.entry_key, entry_key))
-            if len(hits) == 0:
-                raise Exception('Entry %s not found' % entry_key)
-            elif len(hits) > 1:
-                raise Exception('More than one hit for entry %s' % entry_key)
-            entry_id, entry = hits.iterrows().next()
-        else:
-            entry = data.ix[entry_key]
+        entry = self.get_entry(entry_key)
 
         # Get the template
         env = Environment(loader=DictLoader({'my_template': self.entry_html_template}))
@@ -382,7 +435,6 @@ class SingleEntryHTMLDecisionTracker(HTMLDecisionTracker):
                 if key in self._decisions_cache:
                     del self._decisions_cache[key]
             else:
-                print decision
                 self._decisions_cache[key] = decision
 
         # Save, if desired
@@ -395,3 +447,48 @@ class SingleEntryBokehHTMLDecisionTracker(SingleEntryHTMLDecisionTracker):
 
     notebook = BinaryField(required=True)
     """Notebook used to generate the visualization"""
+
+    def get_settings(self):
+        last = super(SingleEntryBokehHTMLDecisionTracker, self).get_settings()
+
+        del last['notebook']
+
+        return last
+
+    def get_form(self):
+        super_form = super(SingleEntryBokehHTMLDecisionTracker, self).get_form()
+
+        class MyForm(super_form):
+            notebook = wtfields.FileField('Plot Making Tool',
+                                                     description='Template for a form for editing a single entry',
+                                                     render_kw={'class': 'form-control-file'}
+                                                     )
+
+        return MyForm
+
+    def process_form(self, form, request):
+        super(SingleEntryBokehHTMLDecisionTracker, self).process_form(form, request)
+
+        # Read in the template
+        if not type(request.POST['notebook']) == unicode:
+            self.entry_html_template = str(request.POST['notebook'].file.read())
+
+    def get_entry_editing_tool(self, entry_key, **kwargs):
+        # Get the entry in question
+        entry = self.get_entry(entry_key)
+
+        # First, run the underlying notebook to get the Bokeh plot information
+        inputs = self.get_input()
+        inputs['entry'] = entry
+
+        # Get other necessary data
+        other_data = dict(entry_key=entry_key, decisions=self.get_decisions_for_entry(entry_key))
+
+        # Make the figure
+        self.notebook, plot_data = run_notebook(self.notebook, inputs, other_data)
+
+        # Send the plot
+        return super(SingleEntryBokehHTMLDecisionTracker, self).get_entry_editing_tool(
+            entry_key=entry_key,
+            **plot_data
+        )

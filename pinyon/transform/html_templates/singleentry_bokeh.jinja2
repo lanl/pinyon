@@ -10,6 +10,12 @@
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css"/>
     <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
 
+    <!-- Bokeh includes -->
+    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.0.min.css" type="text/css" />
+	<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.0.min.css" type="text/css" />
+    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.0.min.js"></script>
+	<script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.0.min.js"></script>
+
     <!-- Special-purpose classes -->
     <style>
         .editedCell {
@@ -52,30 +58,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>Editable Data Table</h1>
-        <p>Double click on a cell to edit it. Click submit to send it results</p>
+        <h1>Phase Fraction Tool for {{ entry_key }}</h1>
+        <p>Use the highlight tool to either mark regions to exclude from analysis (Crop) or designate as the second
+            phase (Mark). You can remove mistakes by switching "Add" to "Remove"</p>
 
         <p>
-            <form id="editTable">
-                <table class="table">
-                    <thead>
-                        <tr><th>Data</th><th>Value</th><th>Decision Notes</th></tr>
-                    </thead>
-                    <tbody>
-                    {% for col in entry.keys() %}
-                        <tr class="entryRow" name="{{ col }}">
-                            <th>{{ col }}</th>
-                            <td><input class="entryInput" type="text" original-value="{{ entry[col] }}" value="{{ entry[col] }}"></td>
-                            <td><input class="entryDecision" type="text" name="{{ col }}-notes"></td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </form>
+            {{ div }}
+            {{ scripts }}
         </p>
-
-
-        <button style="font-size: 20px" id="submit-button" type="button" class="btn btn-primary">Submit Decisions</button>
 
         <form id="output-form" action="/tool/{{ tool.id }}/decision" method="POST">
             <input type="hidden" name="output-field" id="output-field"/>
