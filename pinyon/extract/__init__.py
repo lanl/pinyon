@@ -1,11 +1,13 @@
 """This module contains code for extracting data 
 from various data repositories"""
+import logging
 import pickle as pickle
 
 import datetime
 from mongoengine import Document
 from mongoengine.fields import DateTimeField, DictField, StringField
 
+from pinyon.utility import WorkflowTool
 from .. import KnownClass
 from pandas import read_excel
 
@@ -33,14 +35,14 @@ class BaseExtractor(Document):
     result = StringField(required=False)
     """Storage for the pickled form of _data_cache"""
     
-    def get_data(self, ignore_cache=False, save_results=False):
+    def get_data(self, ignore_cache=False, save_results=False, run_subsequent=False):
         """Extract data from a certain resource, assemble
         data into a tabular format
 
         Input:
             :param ignore_cache: boolean, whether to ignore any previously-saved result
             :param save_results: boolean, whether to save the extractor
-
+            :param run_subsequent: boolean, whether to run subsequent tools
         Output:
             Panda's DataFrame object
         """
@@ -58,10 +60,24 @@ class BaseExtractor(Document):
         elif self.result is not None:
             self._data_cache = pickle.loads(self.result)
         else:
+            # Run the extractor
+            logging.info("Running extractor: %s"%self.name)
             self._data_cache = self._run_extraction()
             self.last_exported = datetime.datetime.now()
+
+            # Invalidate or re-run subsequent steps
+            if run_subsequent:
+                for tool in self.get_next_steps():
+                    # For a re-run
+                    tool.run(ignore_results=True, save_results=save_results, run_subsequent=True)
+            else:
+                for tool in self.get_next_steps():
+                    tool.clear(save=save_results, clear_next_steps=True)
+
+            # Save results, if needed
             if save_results:
                 self.save()
+
         return self._data_cache
 
     def _run_extraction(self):
@@ -80,6 +96,25 @@ class BaseExtractor(Document):
 
         return super(BaseExtractor, self).save()
 
+    def get_toolchains(self):
+        """Get the toolchains that use this data source
+
+        :return: list of ToolChain, desired toolchains
+        """
+        from ..toolchain import ToolChain
+        return ToolChain.objects(extractor=self)
+
+    def get_next_steps(self):
+        """Get all tools that directly pull data from this extractor"""
+
+        # Get all the toolchains that use this extractor
+        tc = self.get_toolchains()
+
+        # Get all the tools in each chain that do not have a previous step (i.e., those that pull from the data source)
+        output = []
+        for t in tc:
+            output.extend(WorkflowTool.objects(toolchain=t, previous_step__exists=False))
+        return output
 
 class ExcelExtractor(BaseExtractor):
     """Extractor designed to pull data from excel files"""

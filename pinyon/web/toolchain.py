@@ -40,7 +40,7 @@ class ToolChainViews:
         toolchain, name = self._get_toolchain()
 
         # Rerun extraction
-        toolchain.extractor.get_data(ignore_cache=True)
+        toolchain.extractor.get_data(ignore_cache=True, run_subsequent=True, save_results=True)
         toolchain.save()
 
         raise exc.HTTPFound(self.request.route_url('toolchain_view', name=name))

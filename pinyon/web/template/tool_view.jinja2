@@ -2,7 +2,19 @@
 <html lang="en">
 <head>
     <title>Tool: {{ tool.name }}</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/tether/1.3.1/js/tether.min.js"></script>
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+    <script
+			  src="https://code.jquery.com/jquery-3.1.0.min.js"
+			  integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
+			  crossorigin="anonymous"></script>
+
+    <!-- Document initialization stuff -->
+    <script>
+        $(document).ready(function() {
+            $(function () {$('[data-toggle="tooltip"]').tooltip()});
+        });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -10,7 +22,16 @@
 
         <p>Part of the <a href="/toolchain/{{ tool.toolchain.name }}/view">{{ tool.toolchain.name }}</a> toolchain</p>
 
-        <a class="btn btn-primary" role="button" href="/tool/{{ name }}/run">Run Tool</a>
+        <p id="run-buttons">
+            <a class="btn btn-primary" role="button" href="/tool/{{ name }}/run"
+               data-toggle="tooltip" data-placement="top" title="Run this tool, clear results of next steps">
+                Run Tool
+            </a>
+            <a class="btn btn-primary" role="button" href="/tool/{{ name }}/run?recursive=True"
+                data-toggle="tooltip" data-placement="top" title="Run this tool, re-run next steps">
+                Run All Tools
+            </a>
+        </p>
 
         <p>
             <table class="table">

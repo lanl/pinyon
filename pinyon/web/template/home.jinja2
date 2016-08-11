@@ -2,16 +2,19 @@
 <html lang="en">
 <head>
     <title>pinyon</title>
-	<link rel="stylesheet" href="static/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
 </head>
 <body>
-    <h1>Welcome to Pinyon!</h1>
+    <div class="container">
+        <h1>Welcome to Pinyon!</h1>
 
-    <h2>Current Tool Chains</h2>
-    <ul>
-        {% for name in names %}
-            <li><a href="toolchain/{{ name }}/view">{{ name }}</a></li>
-        {%  endfor %}
-    </ul>
+        <h2>Current Tool Chains</h2>
+        <ul>
+            {% for tc in toolchains %}
+                <li><b><a href="toolchain/{{ tc.name }}/view">{{ tc.name }}</a></b>
+                    {{ tc.description }}</li>
+            {%  endfor %}
+        </ul>
+    </div>
 </body>
 </html>

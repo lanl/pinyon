@@ -51,8 +51,12 @@ class ToolViews:
         # Get user request
         tool, name = self._get_tool()
 
-        # Rerun extraction
-        tool.run(ignore_results=True, save_results=True)
+        # Check if they specified to recursively run all subsequent tools
+        go_recursive = self.request.GET.get('recursive', "False")
+        go_recursive = True if go_recursive.lower() == "true" else False
+
+        # Rerun tool, and any of the following tools (if desired)
+        tool.run(ignore_results=True, save_results=True, run_subsequent=go_recursive)
         tool.save()
 
         return exc.HTTPFound(self.request.route_url('tool_view', id=name))

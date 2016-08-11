@@ -2,51 +2,88 @@
 <html lang="en">
 <head>
     <title>Extractor: {{ name }}</title>
-	<link rel="stylesheet" href="static/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
 </head>
 <body>
-    <h1>Extractor: {{ name }}</h1>
+    <div class="container">
+        <h1>Extractor: {{ name }}</h1>
 
-    <p><a href="/extractor/{{ name }}/run">Run Extractor</a></p>
+        <p id="run-buttons">
+            <a class="btn btn-primary" role="button" href="/extractor/{{ name }}/run"
+               data-toggle="tooltip" data-placement="top" title="Run this extractor, clear results of next steps">
+                Run Tool
+            </a>
+            <a class="btn btn-primary" role="button" href="/extractor/{{ name }}/run?recursive=True"
+                data-toggle="tooltip" data-placement="top" title="Run this extractor, re-run next steps">
+                Run All Tools
+            </a>
+        </p>
 
-    <table>
-        <tr><th>Name</th><td>{{ extractor.name }}</td></tr>
-        <tr><th>Type</th><td>{{ extractor.__class__.__name__ }}</td></tr>
-        <tr><th>Last Exported</th><td>{{ extractor.last_exported }}</td></tr>
-    </table>
+        <p>
+            <table class="table">
+                <tr><th>Name</th><td>{{ extractor.name }}</td></tr>
+                <tr><th>Type</th><td>{{ extractor.__class__.__name__ }}</td></tr>
+                <tr><th>Last Exported</th><td>{{ extractor.last_exported }}</td></tr>
+            </table>
+        </p>
 
-    <h2>Flatteners</h2>
+        <h2>Tool Chains</h2>
 
-    <ul>
-        {% for flatt in extractor.flatteners %}
-            <li>
-                <p>{{ flatt.name }} - {{ flatt.description }}
-                <table>
-                    <tr><th>Type</th><td>{{ flatt._cls }}</td></tr>
-                    {% for s,v in flatt._data.iteritems() if s not in ['name', 'description'] %}
-                        <tr><th>{{ s }}</th><td>{{ v | string }}</td></tr>
-                    {% endfor %}
-                </table>
-            </li>
-        {% endfor %}
-    </ul>
+        <p>Toolchains that use this data extractor</p>
 
+        <ul>
+            {% for tc in extractor.get_toolchains() %}
+            <li><b><a href="/toolchain/{{ tc.name }}/view">{{ tc.name }}</a></b> {{ tc.description }}</li>
+            {% endfor %}
+        </ul>
 
-    <h2>Data</h2>
+        <h2>Next Steps</h2>
 
-     <p>
-        <form action="/extractor/{{ name }}/data">
-            Download as
-            <select name = "format">
-                {% for opt in format_options %}
-                    <option value="{{ opt }}">{{ opt }}</option>
+        <p>Tools that directly utilize data from this extractor</p>
+
+        <ul>
+            {% for tool in extractor.get_next_steps() %}
+            <li><a href="/tool/{{ tool.id }}/view"><b>{{ tool.name }}</b></a>
+                (<i>{{ tool.toolchain.name }}</i>) {{ tool.description }}</li>
+            {% endfor %}
+        </ul>
+
+        {% if not extractor.flatteners == None %}
+            <h2>Flatteners</h2>
+
+            <p>Tools used to turn a hierarchical data model into a table</p>
+
+            <ul>
+                {% for flatt in extractor.flatteners %}
+                    <li>
+                        <p><b>{{ flatt.name }}</b> {{ flatt.description }}
+                        <table class="table">
+                            <tr><th>Type</th><td>{{ flatt._cls }}</td></tr>
+                            {% for s,v in flatt._data.iteritems() if s not in ['name', 'description'] %}
+                                <tr><th>{{ s }}</th><td>{{ v | string }}</td></tr>
+                            {% endfor %}
+                        </table>
+                    </li>
                 {% endfor %}
-            </select>
-            <button type="submit">Download</button>
-        </form>
-    </p>
+            </ul>
+        {% endif %}
 
-    {{ extractor.get_data().to_html() | safe }}
 
+        <h2>Data</h2>
+
+         <p>
+            <form action="/extractor/{{ name }}/data">
+                Download as
+                <select name = "format">
+                    {% for opt in format_options %}
+                        <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Download</button>
+            </form>
+        </p>
+
+        {{ extractor.get_data().to_html() | safe }}
+    </div>
 </body>
 </html>

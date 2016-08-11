@@ -8,8 +8,8 @@ def home(request):
     """Home page"""
 
     # Get the names of the extractors
-    names = [ x.name for x in ToolChain.objects ]
-    return {'names': names}
+    toolchains = ToolChain.objects.all()
+    return {'toolchains': toolchains}
 
 
 def includeme(config):

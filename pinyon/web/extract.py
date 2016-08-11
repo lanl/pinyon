@@ -88,8 +88,12 @@ class ExtractorViews:
         # Get user request
         extractor, name = self._get_extractor()
 
+        # Check if they specified to recursively run all subsequent tools
+        go_recursive = self.request.GET.get('recursive', "False")
+        go_recursive = True if go_recursive.lower() == "true" else False
+
         # Rerun extraction
-        extractor.get_data(ignore_cache=True)
+        extractor.get_data(ignore_cache=True, run_subsequent=go_recursive)
         extractor.save()
 
         raise exc.HTTPFound(self.request.route_url('extractor_view', name=name))

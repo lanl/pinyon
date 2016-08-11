@@ -1,6 +1,7 @@
-from datetime import datetime
 import cPickle as pickle
 from copy import deepcopy
+from datetime import datetime
+import logging
 
 from mongoengine.fields import EmbeddedDocumentField, ListField, StringField, DateTimeField, ReferenceField, BinaryField
 from mongoengine.document import EmbeddedDocument, Document
@@ -187,7 +188,7 @@ class WorkflowTool(Document):
 
         return WorkflowTool.objects.filter(previous_step=self)
 
-    def run(self, ignore_results=False, save_results=False):
+    def run(self, ignore_results=False, save_results=False, run_subsequent=False):
         """Run an analysis tool
 
         If the tool has already been run, returns cached result
@@ -195,6 +196,7 @@ class WorkflowTool(Document):
         Input:
             :param ignore_results: boolean, whether to redo calculation
             :param save_results: boolean, whether to save results
+            :param run_subsequent: boolean, whether to run subsequent tools
         Output:
             :return: dict, result from the analysis tool
         """
@@ -208,6 +210,9 @@ class WorkflowTool(Document):
             if self.result is not None:
                 self._result_cache = pickle.loads(self.result)
             else:
+                # Inform the logger
+                logging.info("Running %s"%self.name)
+
                 # Get the inputs
                 inputs = self.get_input(save_results=save_results)
                 if 'data' not in inputs:
@@ -220,6 +225,14 @@ class WorkflowTool(Document):
                 outputs['data'] = data
                 self._result_cache = outputs
                 self.last_run = datetime.now()
+
+                # Now, clear or re-run subsequent calculations (which are now out of date)
+                for tool in self.get_next_steps():
+                    if run_subsequent:
+                        # Force it to rerun itself
+                        tool.run(ignore_results=True, save_results=True, run_subsequent=True)
+                    else:
+                        tool.clear_results(clear_next_steps=True, save=True)
 
                 # If desired, save results
                 if save_results:
@@ -244,11 +257,29 @@ class WorkflowTool(Document):
         """
         return self.run()['data']
 
-    def clear_results(self):
-        """Clear any cached results"""
+    def clear_results(self, clear_next_steps=False, save=False):
+        """Clear any cached results
+
+        :param clear_next_steps: bool, Whether to clear results of subsequent steps as well
+        :param save: bool, whether to save the results
+        """
+
+        # Inform the logger
+        logging.info("Clearing %s" % self.name)
+
+        # Clear results in this class
         self.last_run = None
         self._result_cache = None
         self.result = None
+
+        # If desired, save
+        if save:
+            self.save()
+
+        # If desired, clear any subsequent steps recursively
+        if clear_next_steps:
+            for tool in self.get_next_steps():
+                tool.clear_results(clear_next_steps=True, save=save)
 
     def save(self):
         # Pickle result cache, if present
