@@ -58,7 +58,7 @@ def add_data(nb, inputs, settings, use_placeholder=False):
     nb.cells[-1]['metadata']['collapsed'] = True
 
     # For display mode, delete the last output
-    nb.cells[-1]['outputs'] = {}
+    nb.cells[-1]['outputs'] = []
 
 
 def check_notebook(nb):
