@@ -7,6 +7,8 @@ from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 import cPickle as pickle
 
+from pinyon import import_all_known_classes, get_class
+from pinyon.toolchain import ToolChain
 from pinyon.transform.decision import HTMLDecisionTracker, SingleEntryHTMLDecisionTracker
 from pinyon.transform.jupyter import JupyterNotebookTransformer
 from pinyon.utility import WorkflowTool
@@ -189,6 +191,71 @@ class ToolViews:
 
         return Response(tool.get_html_tool())
 
+    @view_config(route_name='tool_create', renderer='template/tool_create.jinja2')
+    def create_tool(self):
+        """Generate a form for creating a new tool"""
+        errors = None
+
+        #  Get the name of the toolchain
+        toolchain = self.request.matchdict.get('toolchain')
+        try:
+            toolchain = ToolChain.objects.get(name=toolchain)
+        except:
+            exc.HTTPNotFound(detail="No such toolchain: %s" % toolchain)
+
+        # Check if this is a submission
+        if self.request.method == 'POST':
+            try:
+                # Get the object
+                object_name = self.request.POST['toolTypeNew'].split(".")
+                new_obj = get_class(".".join(object_name[:-1]), object_name[-1])
+
+                # Instantiate it
+                new_obj = new_obj()
+
+                # Add name, description, and toolchain
+                new_obj.name = self.request.POST['toolName']
+                new_obj.description = self.request.POST['toolDescription']
+                new_obj.toolchain = toolchain
+
+                # Get the previous step
+                prev_step = None if self.request.POST['previousStep'] == 'extractor' else \
+                    WorkflowTool.objects.get(id = self.request.POST['previousStep'])
+                new_obj.previous_step = prev_step
+
+                # Save it
+                new_obj.save()
+
+                # Go to its page
+                return exc.HTTPFound(self.request.route_url('tool_view', id=new_obj.id))
+
+            except Exception, e:
+                errors=e.message
+
+        #    Get all workflow tools
+        tools = import_all_known_classes()
+        tools = [k for k,v in tools.iteritems() if isinstance(v, WorkflowTool)]
+
+        return {
+            'tools': tools,
+            'toolchain': toolchain,
+            'errors': errors
+        }
+
+    @view_config(route_name='tool_delete')
+    def delete_tool(self):
+        # Get user request
+        tool, name = self._get_tool()
+
+        # Get the toolchain
+        toolchain = tool.toolchain
+
+        # Delete this object
+        tool.delete()
+
+        # Reroute to the toolchain page
+        return exc.HTTPFound(self.request.route_url('toolchain_view', name=toolchain.name))
+
 
 def includeme(config):
     config.add_route('tool_view', '/tool/{id}/view')
@@ -198,3 +265,5 @@ def includeme(config):
     config.add_route('tool_jupyter', '/tool/{id}/jupyter')
     config.add_route('tool_edit', '/tool/{id}/edit')
     config.add_route('tool_decision', '/tool/{id}/decision')
+    config.add_route('tool_create', '/tool/create/{toolchain}')
+    config.add_route('tool_delete', '/tool/{id}/delete')

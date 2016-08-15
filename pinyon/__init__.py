@@ -66,11 +66,29 @@ def import_all_known_classes(debug=False):
     """Imports all classes known in the KnownClass database
 
     :param debug: boolean, whether to print which classes are being imported
+    :return: dict, key is a tuple (module name, class name) and value is the instantiated class
     """
 
+    output = {}
     for cls in KnownClass.objects:
         if debug:
             print "Importing %s.%s"%(cls.module_name, cls.class_name)
-        mod = importlib.import_module(cls.module_name)
-        cls = getattr(mod, cls.class_name)
-        cls()
+        x = get_class(cls.module_name, cls.class_name)
+        output[(cls.module_name, cls.class_name)] = x()
+    return output
+
+
+def get_class(module_name, class_name, check_if_pinyon=True):
+    """Import a class
+
+    :param module_name: string, module name (e.g., pinyon.transform)
+    :param class_name: string, name of class (e.g., JupyterTransformer)
+    :param check_if_pinyon: boolean, make sure that the class being loaded is from Pinyon
+    :return: Pointer to class"""
+
+    if not module_name.startswith("pinyon"):
+        raise Exception("Module is not from pinyon")
+
+    mod = importlib.import_module(module_name)
+    x = getattr(mod, class_name)
+    return x

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Create New Tool</title>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <style>
+        body { padding-top: 70px;}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                        aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Pinyon</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/toolchain/{{ toolchain.name }}/view">{{ toolchain.name }}</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Create a New Tool</h1>
+
+    <p>New tool will be part of the <a href="/toolchain/{{ toolchain.name }}/view">{{ toolchain.name }}</a> toolchain</p>
+
+        {% if errors %}
+            <div class="alert alert-danger">
+                <strong>Error! {{ errors }}</strong>
+            </div>
+        {% endif %}
+
+        <form method="POST" action="/tool/create/{{ toolchain.name }}" enctype="multipart/form-data">
+            <h3>Basic Information</h3>
+            <div class="form-group">
+                <label for="toolName">Tool Name</label>
+                <input type="text" class="form-control" id="toolName" placeholder="No whitespace" name="toolName" required>
+                <small class="form-text text-muted">Short name for the tool. Does not need to be unique, but should be descriptive</small>
+            </div>
+            <div class="form-group">
+                <label for="toolDescription">Tool Description</label>
+                <textarea class="form-control" id="toolDescription" rows="3" name="toolDescription" required></textarea>
+                <small class="form-text text-muted">Longer description of the tool. You may use HTML</small>
+            </div>
+
+
+            <h3>Type of Tool</h3>
+            <input id="toolType" type="hidden" value="new"/>
+            <div class="form-group" id="toolTypeNew">
+                <label for="toolToolType">Tool Type</label>
+                <select class="form-control" id="toolTypeNew" name="toolTypeNew">
+                    {% for mod,cls in tools %}
+                        <option value="{{ mod }}.{{ cls }}">{{ cls }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">Type of tool to be used</small>
+            </div>
+
+            <h3>Position in the Workflow</h3>
+            <div class="form-group">
+                <label for="previousStep">Previous Step</label>
+                <select class="form-control" name="previousStep">
+                    <option value="extractor">{{ toolchain.extractor.name }}</option>
+                    {% for tool in toolchain.get_all_tools() %}
+                        <option value="{{ tool.id }}">{{ tool.name }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">The output from the selected tool will be used as input to this new tool</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+</body>
+</html>

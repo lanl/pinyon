@@ -47,7 +47,11 @@ class HTMLDecisionTracker(WorkflowTool):
     decisions = BinaryField(required=True)
     """Holds the pickled form of a dictionary holding the changes that were made."""
 
-    html_template = BinaryField(required=True)
+    html_template = BinaryField(required=True, default=open(os.path.join(
+                os.path.dirname(__file__),
+                'html_templates',
+                'simple_example.jinja2'
+            )).read())
     """Holds the HTML template being used as the decision making tool"""
 
     columns = ListField(StringField())
@@ -308,7 +312,11 @@ class BokehHTMLDecisionTracker(HTMLDecisionTracker):
 
     Uses a Jupyter notebook in the background to generate the scripts and other data required to run the Bokeh plot"""
 
-    notebook = BinaryField(required=True)
+    notebook = BinaryField(required=True, default=open(os.path.join(
+                os.path.dirname(__file__),
+                'jupyter_templates',
+                'bokeh_example.ipynb'
+            )).read())
     """Notebook used to make the visualization"""
 
     def get_settings(self):

@@ -287,3 +287,17 @@ class WorkflowTool(Document):
             self.result = pickle.dumps(self._result_cache)
 
         super(WorkflowTool, self).save()
+
+    def delete(self, update_dependencies=True, **write_concern):
+        """Delete this object.
+
+        :param update_dependencies: boolean, whether to take subsequent tools in a chain and attach them to the previous tool"""
+
+        if update_dependencies:
+            for tool in self.get_next_steps():
+                tool.previous_step = self.previous_step
+                tool.save()
+
+        logging.info("Deleting %s" % self.name)
+
+        super(WorkflowTool, self).delete(**write_concern)

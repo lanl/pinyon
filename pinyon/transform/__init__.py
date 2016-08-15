@@ -22,7 +22,7 @@ class FilterTransformer(BaseTransformer):
         http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.query.html
     """
 
-    query = StringField(required=True)
+    query = StringField(required=True, default="")
     """Query used to define filter"""
 
     def _run(self, data, inputs):
@@ -46,7 +46,7 @@ class FilterTransformer(BaseTransformer):
 class RequiredFieldTransformer(BaseTransformer):
     """Eliminate any rows that have a NaN value for a certain quantity"""
 
-    required_column = StringField(required=True)
+    required_column = StringField(required=True, default="DefaultColumn")
 
     def _run(self, data, other_inputs):
         return data[~ data[self.required_column].isnull()], other_inputs
@@ -69,7 +69,7 @@ class RequiredFieldTransformer(BaseTransformer):
 class ColumnAddTransformer(BaseTransformer):
     """Add new columns to the dataset"""
 
-    column_names = ListField(StringField(), required=True)
+    column_names = ListField(StringField(), required=True, default=['DefaultColumn'])
 
     def _run(self, data, other_inputs):
         for col in self.column_names:
@@ -101,7 +101,7 @@ class SimpleEvalTransformer(BaseTransformer):
         http://pandas.pydata.org/pandas-docs/stable/generated/pandas.eval.html
     """
 
-    eval_string = StringField(required=True)
+    eval_string = StringField(required=True, default="")
 
     def _run(self, data, other_inputs):
         return data.eval(self.eval_string, inplace=False), other_inputs

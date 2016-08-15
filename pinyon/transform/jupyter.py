@@ -69,7 +69,11 @@ def check_notebook(nb):
 class JupyterNotebookTransformer(WorkflowTool):
     """Uses Jupyter notebook to perform a certain optimization step"""
 
-    notebook = BinaryField(required=True)
+    notebook = BinaryField(required=True, default=open(os.path.join(
+                os.path.dirname(__file__),
+                'jupyter_templates',
+                'python2_template.ipynb'
+            )).read())
     """Stores the actual notebook"""
 
     calc_settings = DictField()
