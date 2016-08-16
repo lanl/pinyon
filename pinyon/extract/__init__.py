@@ -65,6 +65,10 @@ class BaseExtractor(Document):
             self._data_cache = self._run_extraction()
             self.last_exported = datetime.datetime.now()
 
+            # Save results, if needed
+            if save_results:
+                self.save()
+
             # Invalidate or re-run subsequent steps
             if run_subsequent:
                 for tool in self.get_next_steps():
@@ -73,10 +77,6 @@ class BaseExtractor(Document):
             else:
                 for tool in self.get_next_steps():
                     tool.clear(save=save_results, clear_next_steps=True)
-
-            # Save results, if needed
-            if save_results:
-                self.save()
 
         return self._data_cache
 

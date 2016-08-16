@@ -226,6 +226,10 @@ class WorkflowTool(Document):
                 self._result_cache = outputs
                 self.last_run = datetime.now()
 
+                # If desired, save results
+                if save_results:
+                    self.save()
+
                 # Now, clear or re-run subsequent calculations (which are now out of date)
                 for tool in self.get_next_steps():
                     if run_subsequent:
@@ -233,10 +237,6 @@ class WorkflowTool(Document):
                         tool.run(ignore_results=True, save_results=True, run_subsequent=True)
                     else:
                         tool.clear_results(clear_next_steps=True, save=True)
-
-                # If desired, save results
-                if save_results:
-                    self.save()
 
         # Print out the results
         return self._result_cache
