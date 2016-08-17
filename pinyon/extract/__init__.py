@@ -7,7 +7,7 @@ import datetime
 from mongoengine import Document
 from mongoengine.fields import DateTimeField, DictField, StringField
 
-from pinyon.utility import WorkflowTool
+from pinyon.tool import WorkflowTool
 from .. import KnownClass
 from pandas import read_excel
 
@@ -42,7 +42,7 @@ class BaseExtractor(Document):
         Input:
             :param ignore_cache: boolean, whether to ignore any previously-saved result
             :param save_results: boolean, whether to save the extractor
-            :param run_subsequent: boolean, whether to run subsequent tools
+            :param run_subsequent: boolean, whether to run subsequent tool
         Output:
             Panda's DataFrame object
         """
@@ -105,12 +105,12 @@ class BaseExtractor(Document):
         return ToolChain.objects(extractor=self)
 
     def get_next_steps(self):
-        """Get all tools that directly pull data from this extractor"""
+        """Get all tool that directly pull data from this extractor"""
 
         # Get all the toolchains that use this extractor
         tc = self.get_toolchains()
 
-        # Get all the tools in each chain that do not have a previous step (i.e., those that pull from the data source)
+        # Get all the tool in each chain that do not have a previous step (i.e., those that pull from the data source)
         output = []
         for t in tc:
             output.extend(WorkflowTool.objects(toolchain=t, previous_step__exists=False))

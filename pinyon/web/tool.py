@@ -1,20 +1,19 @@
 """Web views for tools"""
+import cPickle as pickle
+
 import nbformat
-import nbconvert
+import pyramid.httpexceptions as exc
 from nbconvert.exporters.html import HTMLExporter
 from pyramid.response import Response
 from pyramid.view import view_config
-import pyramid.httpexceptions as exc
-import cPickle as pickle
 
 from pinyon import import_all_known_classes, get_class
 from pinyon.toolchain import ToolChain
-from pinyon.transform.decision import HTMLDecisionTracker, SingleEntryHTMLDecisionTracker
-from pinyon.transform.jupyter import JupyterNotebookTransformer
-from pinyon.utility import WorkflowTool
+from pinyon.tool import WorkflowTool
+from pinyon.tool.decision import HTMLDecisionTracker, SingleEntryHTMLDecisionTracker
+from pinyon.tool.jupyter import JupyterNotebookTransformer
+from pinyon.tool.jupyter import add_data
 from .extract import DataOutput
-import pandas as pd
-from ..transform.jupyter import add_data
 
 
 class ToolViews:
@@ -53,11 +52,11 @@ class ToolViews:
         # Get user request
         tool, name = self._get_tool()
 
-        # Check if they specified to recursively run all subsequent tools
+        # Check if they specified to recursively run all subsequent tool
         go_recursive = self.request.GET.get('recursive', "False")
         go_recursive = True if go_recursive.lower() == "true" else False
 
-        # Rerun tool, and any of the following tools (if desired)
+        # Rerun tool, and any of the following tool (if desired)
         tool.run(ignore_results=True, save_results=True, run_subsequent=go_recursive)
         tool.save()
 
@@ -232,12 +231,12 @@ class ToolViews:
             except Exception, e:
                 errors=e.message
 
-        #    Get all workflow tools
+        #    Get all workflow tool
         tools = import_all_known_classes()
         tools = [k for k,v in tools.iteritems() if isinstance(v, WorkflowTool)]
 
         return {
-            'tools': tools,
+            'tool': tools,
             'toolchain': toolchain,
             'errors': errors
         }

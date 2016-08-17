@@ -5,7 +5,7 @@ from mongoengine import Document
 from mongoengine.fields import *
 
 from pinyon import KnownClass
-from pinyon.utility import WorkflowTool
+from pinyon.tool import WorkflowTool
 import networkx as nx
 
 
@@ -39,9 +39,9 @@ class ToolChain(Document):
         return WorkflowTool.objects.filter(toolchain=self)
 
     def get_tool_network(self):
-        """Get a network representing current tools"""
+        """Get a network representing current tool"""
 
-        # Get tools
+        # Get tool
         tools = self.get_all_tools()
 
         # Make the network

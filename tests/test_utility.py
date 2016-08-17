@@ -5,7 +5,8 @@ from bson.objectid import ObjectId
 from pinyon import connect_to_database
 from pinyon.extract import ExcelExtractor
 from pinyon.toolchain import ToolChain
-from pinyon.utility import Note, WorkflowTool
+from pinyon.utility import Note
+from pinyon.tool import WorkflowTool
 
 
 class TestNote(TestCase):

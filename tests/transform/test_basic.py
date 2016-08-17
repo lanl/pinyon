@@ -1,6 +1,8 @@
 import unittest
+
 from pandas import DataFrame
-from pinyon.transform import *
+
+from pinyon.tool.simple import FilterTransformer, RequiredFieldTransformer, ColumnAddTransformer, SimpleEvalTransformer
 
 
 class TestFilter(unittest.TestCase):

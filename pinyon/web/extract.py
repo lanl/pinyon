@@ -88,7 +88,7 @@ class ExtractorViews:
         # Get user request
         extractor, name = self._get_extractor()
 
-        # Check if they specified to recursively run all subsequent tools
+        # Check if they specified to recursively run all subsequent tool
         go_recursive = self.request.GET.get('recursive', "False")
         go_recursive = True if go_recursive.lower() == "true" else False
 

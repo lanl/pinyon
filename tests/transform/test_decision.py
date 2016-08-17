@@ -1,9 +1,9 @@
-from unittest import TestCase
 from bs4 import BeautifulSoup
+from unittest import TestCase
 
 from pinyon.extract import ExcelExtractor
 from pinyon.toolchain import ToolChain
-from pinyon.transform.decision import HTMLDecisionTracker
+from pinyon.tool.decision import HTMLDecisionTracker
 
 
 class DecisionTest(TestCase):

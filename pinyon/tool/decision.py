@@ -8,9 +8,9 @@ from jinja2 import Environment, DictLoader
 from mongoengine.fields import *
 from wtforms import fields as wtfields
 
-from pinyon.transform.jupyter import JupyterNotebookTransformer
-from .jupyter import run_notebook
-from ..utility import WorkflowTool
+from pinyon.tool import WorkflowTool
+from pinyon.tool.jupyter import JupyterNotebookTransformer
+from pinyon.tool.jupyter import run_notebook
 
 
 class HTMLDecisionTracker(WorkflowTool):

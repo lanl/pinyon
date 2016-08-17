@@ -3,7 +3,7 @@ from unittest import TestCase
 from pinyon import connect_to_database
 from pinyon.extract import ExcelExtractor
 from pinyon.toolchain import ToolChain
-from pinyon.transform import ColumnAddTransformer
+from pinyon.tool.simple import ColumnAddTransformer
 
 
 class TestToolChain(TestCase):

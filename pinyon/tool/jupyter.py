@@ -6,7 +6,7 @@ import nbformat
 from mongoengine import BinaryField, DictField
 from nbconvert.preprocessors import ExecutePreprocessor
 
-from pinyon.utility import WorkflowTool
+from pinyon.tool import WorkflowTool
 from wtforms import fields as wtfields
 
 

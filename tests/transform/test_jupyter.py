@@ -1,8 +1,8 @@
+from unittest import TestCase
+
 from pinyon.extract import ExcelExtractor
 from pinyon.toolchain import ToolChain
-from pinyon.transform.jupyter import JupyterNotebookTransformer
-
-from unittest import TestCase
+from pinyon.tool.jupyter import JupyterNotebookTransformer
 
 
 class TestNotebook(TestCase):
