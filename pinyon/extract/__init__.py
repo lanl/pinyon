@@ -76,7 +76,7 @@ class BaseExtractor(Document):
                     tool.run(ignore_results=True, save_results=save_results, run_subsequent=True)
             else:
                 for tool in self.get_next_steps():
-                    tool.clear(save=save_results, clear_next_steps=True)
+                    tool.clear_results(save=save_results, clear_next_steps=True)
 
         return self._data_cache
 

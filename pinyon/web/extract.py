@@ -93,8 +93,7 @@ class ExtractorViews:
         go_recursive = True if go_recursive.lower() == "true" else False
 
         # Rerun extraction
-        extractor.get_data(ignore_cache=True, run_subsequent=go_recursive)
-        extractor.save()
+        extractor.get_data(ignore_cache=True, save_results=True, run_subsequent=go_recursive)
 
         raise exc.HTTPFound(self.request.route_url('extractor_view', name=name))
 
