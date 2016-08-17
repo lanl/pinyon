@@ -281,12 +281,16 @@ class HTMLDecisionTracker(WorkflowTool):
 
             # Lookup entry ID if needed
             if self.entry_key is not None:
-                hits = data.query('%s == "%s"'%(self.entry_key, entry_id))
-                if len(hits) == 0:
-                    raise Exception('Entry %s not found'%entry_id)
-                elif len(hits) > 1:
-                    raise Exception('More than one hit for entry %s'%entry_id)
-                entry_id, entry = hits.iterrows().next()
+                try:
+                    hits = data.query('%s == "%s"'%(self.entry_key, entry_id))
+                    if len(hits) == 0:
+                        raise Exception('Entry %s not found'%entry_id)
+                    elif len(hits) > 1:
+                        raise Exception('More than one hit for entry %s'%entry_id)
+                    entry_id, entry = hits.iterrows().next()
+                except Exception, e:
+                    print str(e)
+                    continue
 
             # Change the type, if needed
             if isinstance(new_value, str):
