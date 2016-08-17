@@ -92,6 +92,9 @@ class HTMLDecisionTracker(WorkflowTool):
         super_form = super(HTMLDecisionTracker, self).get_form()
 
         class MyForm(super_form):
+            entry_key = wtfields.StringField('Entry Key',
+                                             default=self.entry_key,
+                                             description='Name of column containing names that uniquely define each entry')
             html_template = wtfields.FileField('HTML Template',
                                                description='Jinja2 template used to render the decision form.',
                                                render_kw={'class': 'form-control-file'}
@@ -108,7 +111,8 @@ class HTMLDecisionTracker(WorkflowTool):
         # Read in the template
         if not type(request.POST['html_template']) == unicode:
             self.html_template = str(request.POST['html_template'].file.read())
-        self.columns= [x.strip() for x in form.column_names.data.split(",")]
+        self.columns = [x.strip() for x in form.column_names.data.split(",") if len(x.strip()) > 0]
+        self.entry_key = form.entry_key.data
 
     def get_entry(self, entry_key):
         """Get a certain entry in the input dataset
@@ -364,8 +368,18 @@ class BokehHTMLDecisionTracker(HTMLDecisionTracker):
 class SingleEntryHTMLDecisionTracker(HTMLDecisionTracker):
     """Tool that generates separate pages for editing each entry"""
 
-    entry_html_template = BinaryField(required=True)
+    entry_html_template = BinaryField(required=True, default=open(os.path.join(
+                os.path.dirname(__file__),
+                'html_templates',
+                'singleentry_form.jinja2'
+            )).read())
     """Template of HTML page used to edit entries"""
+
+    html_template = BinaryField(required=True, default=open(os.path.join(
+                os.path.dirname(__file__),
+                'html_templates',
+                'singleentry_selecttable.jinja2'
+            )).read())
 
     def get_settings(self):
         last = super(SingleEntryHTMLDecisionTracker, self).get_settings()
@@ -453,7 +467,11 @@ class SingleEntryHTMLDecisionTracker(HTMLDecisionTracker):
 class SingleEntryBokehHTMLDecisionTracker(SingleEntryHTMLDecisionTracker):
     """Single entry editor that generates a Bokeh figure for the entry-editing pages"""
 
-    notebook = BinaryField(required=True)
+    notebook = BinaryField(required=True, default=open(os.path.join(
+                os.path.dirname(__file__),
+                'jupyter_templates',
+                'singleentry_visualization.ipynb'
+            )).read())
     """Notebook used to generate the visualization"""
 
     def get_settings(self):
@@ -468,7 +486,7 @@ class SingleEntryBokehHTMLDecisionTracker(SingleEntryHTMLDecisionTracker):
 
         class MyForm(super_form):
             notebook = wtfields.FileField('Plot Making Tool',
-                                                     description='Template for a form for editing a single entry',
+                                                     description='Jupyter notebook that, given entry data, produces Bokeh plot components',
                                                      render_kw={'class': 'form-control-file'}
                                                      )
 
@@ -479,7 +497,7 @@ class SingleEntryBokehHTMLDecisionTracker(SingleEntryHTMLDecisionTracker):
 
         # Read in the template
         if not type(request.POST['notebook']) == unicode:
-            self.entry_html_template = str(request.POST['notebook'].file.read())
+            self.notebook = str(request.POST['notebook'].file.read())
 
     def get_entry_editing_tool(self, entry_key, **kwargs):
         # Get the entry in question
