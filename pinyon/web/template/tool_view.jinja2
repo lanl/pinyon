@@ -4,15 +4,24 @@
     <title>Tool: {{ tool.name }}</title>
     <script src="//cdnjs.cloudflare.com/ajax/libs/tether/1.3.1/js/tether.min.js"></script>
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css"/>
     <script
 			  src="https://code.jquery.com/jquery-3.1.0.min.js"
 			  integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
 			  crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
 
     <!-- Document initialization stuff -->
     <script>
         $(document).ready(function() {
             $(function () {$('[data-toggle="tooltip"]').tooltip()});
+
+            {% if is_decision %}
+            $('#decisionTable').DataTable({
+                "iDisplayLength": 5,
+            });
+            {% endif %}
         });
     </script>
     <style>
@@ -128,7 +137,7 @@
             <h2>Decisions</h2>
             <p>List of the decisions that have been recorded in this tool, and the reasons behind them</p>
 
-            <table class="table">
+            <table id="decisionTable" class="table">
                 <thead>
                     <tr><th>Entry</th><th>Column</th><th>Original Value</th><th>New Value</th><th>Support</th></tr>
                 </thead>
