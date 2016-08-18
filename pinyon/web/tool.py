@@ -108,6 +108,25 @@ class ToolViews:
             body=pickle.dumps(output)
         )
 
+    @view_config(route_name='tool_file')
+    def get_file(self):
+        # Get the requested tool
+        tool, tid = self._get_tool()
+
+        # Get the file information
+        file_label = self.request.matchdict['file']
+        if not file_label in tool.get_file_information():
+            return exc.HTTPNotFound(detail='Tool %s has no such component %s'%(tool.name, file_label))
+        file_content = getattr(tool, file_label)
+        file_extension = tool.get_file_information()[file_label]['extension']
+
+        return Response(
+            content_type='application/force-download',
+            content_disposition='attachment; filename=%s_%s.%s'%(tool.name, file_label, file_extension),
+            body=file_content
+        )
+
+
     @view_config(route_name='tool_jupyter')
     def render_notebook(self):
         # Get the requested tool
@@ -266,3 +285,4 @@ def includeme(config):
     config.add_route('tool_decision', '/tool/{id}/decision')
     config.add_route('tool_create', '/tool/create/{toolchain}')
     config.add_route('tool_delete', '/tool/{id}/delete')
+    config.add_route('tool_file', '/tool/{id}/file/{file}')

@@ -146,6 +146,13 @@ class JupyterNotebookTransformer(WorkflowTool):
         for name in self.calc_settings.keys():
             self.calc_settings[name] = form[name].data
 
+    def get_file_information(self):
+        info = super(JupyterNotebookTransformer, self).get_file_information()
+
+        info['notebook'] = dict(description='Jupyter notebook being run by this calculation', extension='ipynb')
+
+        return info
+
     def _run(self, data, other_inputs):
         # Combine data into a form to send to the notebook
         inputs = dict(other_inputs)

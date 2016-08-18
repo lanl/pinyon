@@ -118,6 +118,18 @@ class WorkflowTool(Document):
         # Clear the results
         self.clear_results()
 
+    def get_file_information(self):
+        """Get the list information files that are used as components of this class.
+
+        Each file gets a dictionary, with keys
+            description -> string, Short description of what this file is
+            extension -> string, desired extension for for the file
+
+        :return: dict, where key is the attribute name and value is a description of the file
+        """
+
+        return {}
+
     def get_input(self, save_results=False):
         """Get the results from the previous step, which are used as input into this transformer
 

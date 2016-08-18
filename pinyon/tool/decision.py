@@ -114,6 +114,13 @@ class HTMLDecisionTracker(WorkflowTool):
         self.columns = [x.strip() for x in form.column_names.data.split(",") if len(x.strip()) > 0]
         self.entry_key = form.entry_key.data
 
+    def get_file_information(self):
+        info = super(HTMLDecisionTracker, self).get_file_information()
+
+        info['html_template'] = dict(description='HTML template used to render tool to track decisions', extension='jinja2')
+
+        return info
+
     def get_entry(self, entry_key):
         """Get a certain entry in the input dataset
 
@@ -334,6 +341,14 @@ class BokehHTMLDecisionTracker(HTMLDecisionTracker):
 
         return last
 
+    def get_file_information(self):
+        info = super(BokehHTMLDecisionTracker, self).get_file_information()
+
+        info['notebook'] = dict(description='Tool used to render the Bokeh visualization',
+                                     extension='ipynb')
+
+        return info
+
     def load_notebook(cls, name, description, path):
         if path is None:
             path = os.path.join(
@@ -391,6 +406,14 @@ class SingleEntryHTMLDecisionTracker(HTMLDecisionTracker):
         del last['entry_html_template']
 
         return last
+
+    def get_file_information(self):
+        info = super(SingleEntryHTMLDecisionTracker, self).get_file_information()
+
+        info['entry_html_template'] = dict(description='HTML template used to make a page to track the decision about a single entry',
+                                     extension='jinja2')
+
+        return info
 
     def get_form(self):
         super_form = super(SingleEntryHTMLDecisionTracker, self).get_form()
@@ -484,6 +507,15 @@ class SingleEntryBokehHTMLDecisionTracker(SingleEntryHTMLDecisionTracker):
         del last['notebook']
 
         return last
+
+    def get_file_information(self):
+        info = super(SingleEntryBokehHTMLDecisionTracker, self).get_file_information()
+
+        info['notebook'] = dict(
+            description='Notebook used to generate the Bokeh visualization',
+            extension='ipynb')
+
+        return info
 
     def get_form(self):
         super_form = super(SingleEntryBokehHTMLDecisionTracker, self).get_form()

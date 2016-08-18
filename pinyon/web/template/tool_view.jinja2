@@ -51,6 +51,7 @@
             </div><!--/.nav-collapse -->
         </div>
     </nav>
+
     <div class="container">
         <h1>Tool: {{ tool.name }}</h1>
 
@@ -97,19 +98,21 @@
 
         <h2>Settings</h2>
 
-        <p>
-            <table class="table">
-                <thead>
-                    <tr><th>Name</th><th>Value</th></tr>
-                </thead>
-                <tbody>
-                    {% for s,v in tool.get_settings().iteritems() %}
-                        <tr><th>{{ s }}</th><td>{{ v | string }}</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <a class="btn btn-primary" role="button" href="/tool/{{ name }}/edit">Edit Settings</a>
-        </p>
+        <p>Configurable parameters for this tool</p>
+
+        {% if tool.get_settings() | length > 0 %}
+        <table class="table">
+            <thead>
+                <tr><th>Name</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+                {% for s,v in tool.get_settings().iteritems() %}
+                    <tr><th>{{ s }}</th><td>{{ v | string }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        <a class="btn btn-primary" role="button" href="/tool/{{ name }}/edit">Edit Settings</a>
 
         {% if tool.notes %}
             <h2>Notes</h2>
@@ -119,6 +122,28 @@
                     <li>{{ note.note }} - {{ note.author }}, {{ note.edited }}</li>
                 {% endfor %}
             </ul>
+        {% endif %}
+
+        {% if tool.get_file_information() | length > 0 %}
+        <h2>Supporting Files</h2>
+
+            <p>Files associated with this tool that are used to perform calculations or generate web pages.</p>
+
+            <table class="table">
+                <thead>
+                    <tr><th>Name</th><th>Description</th><th></th></tr>
+                </thead>
+                <tbody>
+                    {% for s,v in tool.get_file_information().iteritems() %}
+                        <tr>
+                            <th>{{ s }}</th>
+                            <td>{{ v['description'] | string }}</td>
+                            <td><a class="btn btn-sm btn-primary" href="/tool/{{ name }}/file/{{ s }}">Download</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
         {% endif %}
 
         {% if is_jupyter %}
@@ -143,7 +168,13 @@
                 </thead>
                 <tbody>
                 {% for (entry, column), decision in tool.get_decisions().iteritems() %}
-                    <tr><td>{{ entry }}</td><td>{{ column }}</td><td>{{ decision[0] }}</td><td>{{ decision[1] }}</td><td>{{ decision[2]}}</td></tr>
+                    <tr>
+                        <td>{{ entry }}</td>
+                        <td>{{ column }}</td>
+                        <td>{{ decision[0] }}</td>
+                        <td>{{ decision[1] }}</td>
+                        <td>{{ decision[2] }}</td>
+                    </tr>
                 {% endfor %}
                 </tbody>
             </table>
