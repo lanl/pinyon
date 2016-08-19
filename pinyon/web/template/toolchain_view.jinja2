@@ -4,9 +4,31 @@
     <title>{{ name }}</title>
     <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
     <script src="/static/dist/js/bootstrap.min.js"></script>
+    <script src="//d3js.org/d3.v3.min.js"></script>
     <style>
         body { padding-top: 70px;}
     </style>
+    <style>
+
+        .node circle {
+            fill: #fff;
+            stroke: steelblue;
+            stroke-width: 1.5px;
+        }
+
+        .node {
+            font: 14px sans-serif;
+            font-weight: bold;
+        }
+
+        .link {
+            fill: none;
+            stroke: #000000;
+            stroke-width: 1.5px;
+        }
+
+    </style>
+
 </head>
 <body>
 <nav class="navbar navbar-default navbar-fixed-top">
@@ -91,7 +113,72 @@
     <a class="btn btn-primary" role="button" href="/tool/create/{{ toolchain.name }}">Create New</a>
 
     <h3>Network View</h3>
-    <iframe src="/toolchain/{{ name }}/network" width="600" height="400"/>
+
+    <p>Show the interrelation and between data analysis tools, starting from the extraction from the database.</p>
+
+    <div id="network-output"/>
 </div>
 </body>
+
+<script>
+    var width = 1024,
+            height = {{ stats['depth'] * 80 }};
+
+    var tree = d3.layout.tree()
+            .size([width, height - 64]);
+
+    var diagonal = d3.svg.diagonal()
+            .projection(function (d) {
+                return [d.x, d.y];
+            });
+
+    var svg = d3.select("#network-output").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(0,32)");
+
+    d3.json('/toolchain/{{ name }}/network', function (error, json) {
+        if (error) throw error;
+
+        var nodes = tree.nodes(json),
+                links = tree.links(nodes);
+
+        var link = svg.selectAll("path.link")
+                .data(links)
+                .enter().append("path")
+                .attr("class", "link")
+                .attr("d", diagonal);
+
+        var node = svg.selectAll("g.node")
+                .data(nodes)
+                .enter().append("g")
+                .attr("class", "node")
+                .attr("z", 1)
+                .attr("transform", function (d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                });
+
+        node.append("circle")
+                .attr("r", 20);
+
+        var text_boxes = node.append("text")
+                .attr("dy", 0)
+                .attr("dx", -10)
+                .text(function (d) {
+                    return d.name;
+                });
+
+        node.data(nodes)
+                .on("click", function(d) {
+                    if (d.class_hierarchy.startsWith("BaseExtractor")) {
+                        window.location.href = '/extractor/' + d.name + '/view';
+                    } else {
+                        window.location.href = '/tool/' + d.id + '/view';
+                    }
+                });
+    });
+
+</script>
+
 </html>

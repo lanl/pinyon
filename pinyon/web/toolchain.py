@@ -1,4 +1,5 @@
 """Views for extractors"""
+from pyramid.renderers import render_to_response
 from pyramid.response import Response
 from pyramid.view import view_config
 import pyramid.httpexceptions as exc
@@ -7,6 +8,8 @@ from pinyon.toolchain import ToolChain
 import networkx as nx
 from matplotlib import pyplot as plt
 import mpld3
+
+import json
 
 
 class ToolChainViews:
@@ -21,15 +24,19 @@ class ToolChainViews:
         toolchain = ToolChain.objects.get(name=name)
         return toolchain, name
 
-    @view_config(route_name='toolchain_view', renderer = 'template/toolchain_view.jinja2')
+    @view_config(route_name='toolchain_view', renderer='template/toolchain_view.jinja2')
     def view(self):
         """Just view the toolchain"""
 
         toolchain, name = self._get_toolchain()
 
+        # Get stats about the toolchain network
+        net_stats = toolchain.get_stats()
+
         return {
             'name': name,
-            'toolchain': toolchain
+            'toolchain': toolchain,
+            'stats': net_stats
         }
 
     @view_config(route_name='toolchain_run')
@@ -50,13 +57,11 @@ class ToolChainViews:
         # Get user request
         toolchain, name = self._get_toolchain()
 
-        # Get the network
-        G = toolchain.get_tool_network()
+        # Get the hierarchy
+        network = toolchain.get_tool_hierarchy()
 
-        # Render it as a tree for JSON purposes
-
-        # Return it as HTML
-        return Response(json=None)
+        # Return raw data
+        return Response(body=json.dumps(network, indent=2))
 
 
 def includeme(config):
