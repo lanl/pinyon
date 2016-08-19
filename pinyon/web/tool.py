@@ -8,12 +8,12 @@ from pyramid.response import Response
 from pyramid.view import view_config
 
 from pinyon import import_all_known_classes, get_class
+from pinyon.artifacts import PandasArtifact
 from pinyon.toolchain import ToolChain
 from pinyon.tool import WorkflowTool
 from pinyon.tool.decision import HTMLDecisionTracker, SingleEntryHTMLDecisionTracker
 from pinyon.tool.jupyter import JupyterNotebookTransformer
 from pinyon.tool.jupyter import add_data
-from .extract import DataOutput
 
 
 class ToolViews:
@@ -40,7 +40,7 @@ class ToolViews:
         return {
             'name': name,
             'tool': tool,
-            'format_options': DataOutput.known_data_formats.keys(),
+            'format_options': PandasArtifact().available_formats().keys(),
             'is_jupyter': isinstance(tool, JupyterNotebookTransformer),
             'is_decision': isinstance(tool, HTMLDecisionTracker)
         }
@@ -76,12 +76,14 @@ class ToolViews:
         res = tool.run(save_results=True)
 
         # Render into desired format
-        output_settings, output_data = DataOutput.prepare_for_output(res['data'], data_format)
+        data_artifact = res['data']
+        output_data = data_artifact.render_output(data_format)
+        extension = data_format.available_formats()[data_format]['extension']
 
         # Send out the data in CSV format
         return Response(
             content_type="application/force-download",
-            content_disposition='attachment; filename=%s.%s' % (tool.name, output_settings['extension']),
+            content_disposition='attachment; filename=%s.%s' % (tool.name, extension),
             body=output_data
         )
 

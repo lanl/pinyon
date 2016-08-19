@@ -5,53 +5,8 @@ from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 from tempfile import mkstemp
 
+from pinyon.artifacts import PandasArtifact
 from pinyon.extract import BaseExtractor
-
-
-class DataOutput:
-    """Utility class for outputting data"""
-
-    known_data_formats = {
-        'csv': {'extension': 'csv', 'pandas': 'to_csv', 'kwargs': {'index': False}},
-        'excel': {'extension': 'xlsx', 'pandas': 'to_excel', 'kwargs': {'index': False}},
-        'pickle': {'extension': 'pkl', 'pandas': 'to_pickle', 'kwargs': {}},
-        'json': {'extension': 'json', 'pandas': 'to_json', 'kwargs': {'orient': 'values'}}
-    }
-    """Data formats known by this class
-
-    Key is the human name. Value is a dictionary where:
-        'extension' is the desired file extension
-        'pandas' is the pandas function name
-        'kwargs' are any arguments to the pandas function
-    """
-
-    @classmethod
-    def prepare_for_output(cls, data, data_format):
-        """Convert a DataFrame object into a string
-
-        :param data: Dataset to be transformed
-        :param data_format: Desired format
-        :return: DataFrame as string
-        """
-
-        if data_format not in DataOutput.known_data_formats:
-            return exc.HTTPBadRequest(detail='Format unrecognized: %s' % data_format)
-
-        output_settings = DataOutput.known_data_formats[data_format]
-
-        # Write the object
-        if data_format in ['excel', 'pickle']:
-            # Write to temp file, read it
-            fp, filename = mkstemp(output_settings['extension'])
-            getattr(data, output_settings['pandas']) \
-                (filename, **output_settings['kwargs'])
-            output_data = open(filename, 'r').read()
-            os.remove(filename)
-        else:
-            output_data = getattr(data, output_settings['pandas']) \
-                (path_or_buf=None, **output_settings['kwargs'])
-
-        return output_settings, output_data
 
 
 class ExtractorViews:
@@ -78,7 +33,7 @@ class ExtractorViews:
         return {
             'name': name,
             'extractor': extractor,
-            'format_options': DataOutput.known_data_formats.keys(),
+            'format_options': PandasArtifact().available_formats().keys()
         }
 
     @view_config(route_name='extractor_run')
@@ -108,12 +63,14 @@ class ExtractorViews:
         data_format = self.request.GET.get('format', 'csv')
 
         # Render into desired format
-        output_settings, output_data = DataOutput.prepare_for_output(extractor.get_data(), data_format)
+        data_artifact = extractor.get_data()
+        output_data = data_artifact.render_output(data_format)
+        extension = self.available_formats()[data_format]['extension']
 
         # Send out the data in CSV format
         return Response(
             content_type="application/force-download",
-            content_disposition='attachment; filename=%s.%s'%(extractor.name, output_settings['extension']),
+            content_disposition='attachment; filename=%s.%s'%(extractor.name, extension),
             body=output_data
         )
 

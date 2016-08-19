@@ -83,7 +83,7 @@
             </form>
         </p>
 
-        {{ extractor.get_data().to_html() | safe }}
+        {{ extractor.get_data().render_output('html') | safe }}
     </div>
 </body>
 </html>
