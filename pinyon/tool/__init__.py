@@ -95,12 +95,20 @@ class WorkflowTool(Document):
         :return: WTForm, used for editting
         """
 
+        # Prepare the previous step choices
+        previous_steps = [('extractor', self.toolchain.extractor.name)]
+        for choice in self.get_acceptable_previous_steps():
+            previous_steps.append((str(choice.id), choice.name))
+
         class EditForm(Form):
             name = wtfields.StringField('Tool Name', default=self.name,
                                         description='Simple name for this tool')
             description = wtfields.StringField('Tool Description', default=self.description,
                                                render_kw={'type': 'textarea'},
                                                description='Longer form description of what this tool does')
+            previous_step = wtfields.SelectField('Previous Step', choices=previous_steps,
+                                                 default=str(self.previous_step.id) if self.previous_step else 'extractor',
+                                                 description='Previous step in toolchain. Supplies inputs into this tool')
 
         return EditForm
 
@@ -114,6 +122,13 @@ class WorkflowTool(Document):
         # Make the changes
         self.name = form.name.data
         self.description = form.description.data
+
+        # Get the previous step
+        prev_step_choice = form.previous_step.data
+        if prev_step_choice == 'extractor':
+            self.previous_step = None
+        else:
+            self.previous_step = WorkflowTool.objects.get(id = prev_step_choice)
 
         # Clear the results
         self.clear_results()
@@ -156,6 +171,49 @@ class WorkflowTool(Document):
         """
 
         return WorkflowTool.objects.filter(previous_step=self)
+
+    def get_all_next_steps(self):
+        """Get any tools later in the toolchain
+
+        Output:
+            :return: set, all tools that are after this one """
+
+        output = set(self.get_next_steps())
+
+        for step in set(output):
+            output.update(step.get_all_next_steps())
+
+        return output
+
+    def get_acceptable_previous_steps(self):
+        """Get all steps that are not after this one in the chain
+
+        Output:
+            :return: set, all steps in the toolchain that are not after this
+        """
+
+        # Get the bad choices
+        bad_tools = self.get_all_next_steps()
+        return WorkflowTool.objects.filter(toolchain=self.toolchain,
+                                           id__not__in=[x.id for x in bad_tools],
+                                           id__ne=self.id)
+
+    def get_all_previous_step(self):
+        """Get any steps before this one
+
+        Output:
+            :return: list, all steps that are previous, where [0] is the immediately previous step"""
+
+        # Nothing
+        if not self.previous_step:
+            return set()
+
+        # Propogate!
+        output = [self.previous_step]
+        output.extend(self.previous_step.get_all_previous_steps())
+
+        return output
+
 
     def run(self, ignore_results=False, save_results=False, run_subsequent=False):
         """Run an analysis tool
