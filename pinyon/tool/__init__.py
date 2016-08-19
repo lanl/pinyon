@@ -3,12 +3,12 @@ import logging
 from copy import deepcopy
 from datetime import datetime
 
-from mongoengine import Document, StringField, DateTimeField, ListField, EmbeddedDocumentField, ReferenceField, \
-    BinaryField
+from mongoengine import Document, StringField, DateTimeField, ListField, EmbeddedDocumentField, ReferenceField, MapField
 from wtforms import Form
 import wtforms.fields as wtfields
 
 from pinyon import KnownClass
+from pinyon.artifacts import Artifact, PandasArtifact
 from pinyon.utility import Note
 
 
@@ -21,30 +21,30 @@ class WorkflowTool(Document):
 
     meta = {'allow_inheritance': True}
 
-    name = StringField(required=True, regex="^[^\\s+]*$")
+    name = StringField(required=True, regex="^[^\\s+]*$", help_text='Short identifier of this tool')
     """Name of this tool. Cannot have whitespace"""
 
-    description = StringField(required=True)
+    description = StringField(required=True, help_text='Longer description of what this tool does')
     """Description of this tool"""
 
-    last_run = DateTimeField()
+    last_run = DateTimeField(help_text='When this tool was run last')
     """Last time this object was run"""
 
-    notes = ListField(EmbeddedDocumentField(Note))
+    notes = ListField(EmbeddedDocumentField(Note), help_text='Any notes about this method')
     """Any notes about this tool"""
 
-    previous_step = ReferenceField('WorkflowTool')
+    previous_step = ReferenceField('WorkflowTool', help_text='Previous tool in chain. If none, this tool pulls from the data extractor')
     """Previous step / dependency for this tool.
 
     LW 11July2016: Consider making this a ListField to have multiple dependencies"""
 
-    toolchain = ReferenceField('ToolChain', required=True)
+    toolchain = ReferenceField('ToolChain', required=True, help_text='Toolchain this tool is part of')
     """Tool chain that this tool is associated with"""
 
     _result_cache = None
     """Holds a dictionary results from this calculation"""
 
-    result = BinaryField()
+    result = MapField(EmbeddedDocumentField(Artifact), help_text='Results produced by this tool, or inherited by any previous tools')
     """Holds the pickled version of `result_cache`"""
 
     def __init__(self, *args, **kwargs):
@@ -92,7 +92,7 @@ class WorkflowTool(Document):
     def get_form(self):
         """Get a WTForm class that can be used to edit this class
 
-        :return: WTForm, used for editting
+        :return: WTForm, used for editing
         """
 
         # Prepare the previous step choices
@@ -128,7 +128,7 @@ class WorkflowTool(Document):
         if prev_step_choice == 'extractor':
             self.previous_step = None
         else:
-            self.previous_step = WorkflowTool.objects.get(id = prev_step_choice)
+            self.previous_step = WorkflowTool.objects.get(id=prev_step_choice)
 
         # Clear the results
         self.clear_results()
@@ -145,7 +145,7 @@ class WorkflowTool(Document):
 
         return {}
 
-    def get_input(self, save_results=False):
+    def get_inputs(self, save_results=False):
         """Get the results from the previous step, which are used as input into this transformer
 
         :param save_results: boolean, whether to ensure the previous tool saves new results
@@ -157,8 +157,8 @@ class WorkflowTool(Document):
             # Get data from the host workflow
             data = self.toolchain.extractor.get_data(save_results=save_results)
 
-            # Return the dictionary
-            return {'data': data}
+            # Store data as a pandas artifact
+            return dict(data=data)
 
         # Get result from previous step
         return self.previous_step.run(save_results=save_results)
@@ -214,7 +214,6 @@ class WorkflowTool(Document):
 
         return output
 
-
     def run(self, ignore_results=False, save_results=False, run_subsequent=False):
         """Run an analysis tool
 
@@ -233,40 +232,44 @@ class WorkflowTool(Document):
             self.clear_results()
 
         # Run it or unpickle cached result
-        if self._result_cache is None:
-            if self.result is not None:
-                self._result_cache = pickle.loads(self.result)
-            else:
-                # Inform the logger
-                logging.info("Running %s"%self.name)
+        if self.last_run is None:
+            # Inform the logger
+            logging.info("Running %s"%self.name)
 
-                # Get the inputs
-                inputs = self.get_input(save_results=save_results)
-                if 'data' not in inputs:
-                    raise Exception('Input does not include data field')
-                data = inputs['data']
-                del inputs['data']
+            # Get the inputs
+            inputs = self.get_inputs(save_results=save_results)
+            if 'data' not in inputs:
+                raise Exception('Input does not include data field')
 
-                # Run the transformer
-                data, outputs = self._run(data, inputs)
-                outputs['data'] = data
-                self._result_cache = outputs
-                self.last_run = datetime.now()
+            # Remove data from its holder (to be easier to work with)
+            data_artifact = inputs['data']
+            data = data_artifact.get_object()
+            del inputs['data']
 
-                # If desired, save results
-                if save_results:
-                    self.save()
+            # Run the transformer
+            data, outputs = self._run(data, inputs)
 
-                # Now, clear or re-run subsequent calculations (which are now out of date)
-                for tool in self.get_next_steps():
-                    if run_subsequent:
-                        # Force it to rerun itself
-                        tool.run(ignore_results=True, save_results=True, run_subsequent=True)
-                    else:
+            # Put data back into the results object as a non-artifact
+            outputs['data'] = data_artifact
+            outputs['data'].set_object(data)
+            self.result = outputs
+
+            # Update the last run time
+            self.last_run = datetime.now()
+
+            # If desired, save results
+            if save_results:
+                self.save()
+
+            # Now, clear or re-run subsequent calculations (which are now out of date)
+            for tool in self.get_next_steps():
+                if run_subsequent:
+                    # Force it to rerun itself
+                    tool.run(ignore_results=True, save_results=True, run_subsequent=True)
+                else:
                         tool.clear_results(clear_next_steps=True, save=True)
 
-        # Print out the results
-        return self._result_cache
+        return self.result
 
     def _run(self, data, other_inputs):
         """Do the actual running
@@ -282,7 +285,7 @@ class WorkflowTool(Document):
 
         :return: DataFrame
         """
-        return self.run()['data']
+        return self.run()['data'].get_object()
 
     def clear_results(self, clear_next_steps=False, save=False):
         """Clear any cached results
@@ -296,8 +299,7 @@ class WorkflowTool(Document):
 
         # Clear results in this class
         self.last_run = None
-        self._result_cache = None
-        self.result = None
+        self.result = {}
 
         # If desired, save
         if save:
@@ -307,13 +309,6 @@ class WorkflowTool(Document):
         if clear_next_steps:
             for tool in self.get_next_steps():
                 tool.clear_results(clear_next_steps=True, save=save)
-
-    def save(self):
-        # Pickle result cache, if present
-        if self._result_cache is not None:
-            self.result = pickle.dumps(self._result_cache)
-
-        super(WorkflowTool, self).save()
 
     def delete(self, update_dependencies=True, **write_concern):
         """Delete this object.

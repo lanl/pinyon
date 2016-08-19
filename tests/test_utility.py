@@ -40,7 +40,7 @@ class TestWorkFlow(TestCase):
         # Make a FilterExtractor
         wt = WorkflowTool(skip_register=True)
         wt.toolchain = tc
-        inputs = wt.get_input()
+        inputs = wt.get_inputs()
         self.assertEquals(['data'], inputs.keys())
 
         # Make a fake tool that adds a second field to the output
@@ -48,7 +48,7 @@ class TestWorkFlow(TestCase):
         wt2.toolchain = tc
 
         wt.previous_step = wt2
-        inputs = wt.get_input()
+        inputs = wt.get_inputs()
         # Should have the output form Bogus tool
         self.assertEquals(['data', 'data2'], inputs.keys())
         self.assertEquals(inputs['data'], inputs['data2'])

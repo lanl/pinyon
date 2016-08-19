@@ -16,7 +16,7 @@ class DecisionTest(TestCase):
         # Add in a decision tracker
         wt = HTMLDecisionTracker.load_template('TestTool', 'Test for this test', None, skip_register=True)
         wt.toolchain = tc
-        inputs = wt.get_input()
+        inputs = wt.get_inputs()
         self.assertEquals(['data'], inputs.keys()) # Make sure it fires up
 
         # Make sure it renders a table without error, and with 0 as the index of the first row in the body
@@ -48,7 +48,7 @@ class DecisionTest(TestCase):
         self.assertEquals(('30-4', 'Flew', 'Because I felt like it.'), wt._decisions_cache.values()[0])
 
         # Apply it to the dataset
-        data = wt.get_input()['data']
+        data = wt.get_inputs()['data']
         self.assertEquals('30-4', data['Route'][0])
 
         outputs = wt.run()

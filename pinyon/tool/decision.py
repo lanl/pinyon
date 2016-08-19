@@ -128,7 +128,7 @@ class HTMLDecisionTracker(WorkflowTool):
         :return: Series, entry in question
         """
         # Get the input dataset
-        inputs = self.get_input()
+        inputs = self.get_inputs()
         data = inputs['data']
 
         # Get the entry
@@ -189,7 +189,7 @@ class HTMLDecisionTracker(WorkflowTool):
         template = env.get_template('my_template')
 
         # Get the stuff to be put in the page
-        inputs = self.get_input()
+        inputs = self.get_inputs()
         data = inputs['data']
 
         # Render data as html
@@ -360,7 +360,7 @@ class BokehHTMLDecisionTracker(HTMLDecisionTracker):
 
     def get_html_tool(self, **kwargs):
         # First, run the underlying notebook to get the Bokeh plot information
-        self.notebook, plot_data = run_notebook(self.notebook, self.get_input(), {})
+        self.notebook, plot_data = run_notebook(self.notebook, self.get_inputs(), {})
 
         # Pass it on the tool renderer
         return super(BokehHTMLDecisionTracker, self).get_html_tool(**plot_data)
@@ -540,7 +540,7 @@ class SingleEntryBokehHTMLDecisionTracker(SingleEntryHTMLDecisionTracker):
         entry = self.get_entry(entry_key)
 
         # First, run the underlying notebook to get the Bokeh plot information
-        inputs = self.get_input()
+        inputs = self.get_inputs()
         inputs['entry'] = entry
 
         # Get other necessary data

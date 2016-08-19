@@ -7,6 +7,7 @@ import datetime
 from mongoengine import Document
 from mongoengine.fields import DateTimeField, DictField, StringField
 
+from pinyon.artifacts import PandasArtifact
 from pinyon.tool import WorkflowTool
 from .. import KnownClass
 from pandas import read_excel
@@ -78,7 +79,11 @@ class BaseExtractor(Document):
                 for tool in self.get_next_steps():
                     tool.clear_results(save=save_results, clear_next_steps=True)
 
-        return self._data_cache
+        # Turn cached dataset object into a Artifact
+        output = PandasArtifact(name='Dataset', description='Main dataset for this analysis toolchain')
+        output.set_object(self._data_cache)
+
+        return output
 
     def _run_extraction(self):
         """Actually perform the data extraction.
@@ -115,6 +120,7 @@ class BaseExtractor(Document):
         for t in tc:
             output.extend(WorkflowTool.objects(toolchain=t, previous_step__exists=False))
         return output
+
 
 class ExcelExtractor(BaseExtractor):
     """Extractor designed to pull data from excel files"""

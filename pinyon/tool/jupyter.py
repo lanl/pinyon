@@ -209,7 +209,7 @@ class JupyterNotebookTransformer(WorkflowTool):
 
         # Add data to the notebook
         nb = nbformat.reads(self.notebook, nbformat.NO_CONVERT)
-        add_data(nb, self.get_input(), self.calc_settings)
+        add_data(nb, self.get_inputs(), self.calc_settings)
 
         # Write the notebook
         notebook = nbformat.writes(nb, nbformat.NO_CONVERT)
