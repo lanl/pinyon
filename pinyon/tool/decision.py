@@ -129,7 +129,7 @@ class HTMLDecisionTracker(WorkflowTool):
         """
         # Get the input dataset
         inputs = self.get_inputs()
-        data = inputs['data']
+        data = inputs['data'].get_object()
 
         # Get the entry
         if self.entry_key is not None:
@@ -190,7 +190,7 @@ class HTMLDecisionTracker(WorkflowTool):
 
         # Get the stuff to be put in the page
         inputs = self.get_inputs()
-        data = inputs['data']
+        data = inputs['data'].get_object()
 
         # Render data as html
         chosen_columns = None if len(self.columns) == 0 else self.columns
