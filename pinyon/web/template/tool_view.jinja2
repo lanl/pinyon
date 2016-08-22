@@ -182,28 +182,49 @@
             <a class="btn btn-primary" role="button" href="/tool/{{ name }}/decision">Update Decisions</a>
         {% endif %}
 
-        <h2>Outputs</h2>
+
         {% if tool.last_run %}
+            <h2>Artifacts</h2>
 
+            <p>Outputs from this or any previous tool. Download links provide the data in Python pickle format</p>
 
-            <p>Outputs from the tool. Download links provide the data in Python pickle format</p>
-
-            <ul>
-                {% for output in tool.run() %}
-                    <li><a href="/tool/{{ name }}/output/{{ output }}">{{ output }}</a></li>
+            <table class="table">
+                <thead>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th style="width: 200pt;">Download</th>
+                </thead>
+                <tbody>
+                {% for output_name, artifact in tool.run().iteritems() %}
+                <tr>
+                    <td>{{ output_name }}</td>
+                    <td>{{ artifact.description }}</td>
+                    <td>
+                        <form action="/tool/{{ name }}/output/{{ output_name }}" method="get">
+                             Format:
+                            <select name="format" value="{{ artifact.default_format() }}">
+                                {% for opt in artifact.available_formats() %}
+                                    <option value="{{ opt }}">{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-sm" type="submit">Download</button>
+                        </form>
+                    </td>
+                </tr>
                 {% endfor %}
-            </ul>
+                </tbody>
+            </table>
 
             <h2>Data</h2>
 
             <form action="/tool/{{ name }}/data" id="download-form">
                 Download as
-                <select name = "format" id="download-form_format-selector">
+                <select name="format" id="download-form_format-selector">
                     {% for opt in format_options %}
                         <option value="{{ opt }}">{{ opt }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit">Download</button>
+                <button class="btn btn-sm" type="submit">Download</button>
             </form>
 
             <iframe width="1024" height="600" srcdoc="{{ tool.get_data().to_html() }}"/>

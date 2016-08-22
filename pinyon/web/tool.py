@@ -8,7 +8,7 @@ from pyramid.response import Response
 from pyramid.view import view_config
 
 from pinyon import import_all_known_classes, get_class
-from pinyon.artifacts import PandasArtifact
+from pinyon.artifacts import PandasArtifact, PythonArtifact
 from pinyon.toolchain import ToolChain
 from pinyon.tool import WorkflowTool
 from pinyon.tool.decision import HTMLDecisionTracker, SingleEntryHTMLDecisionTracker
@@ -100,14 +100,22 @@ class ToolViews:
         # Get that object, or throw a 404
         outputs = tool.run(save_results=True)
         if output_name not in outputs:
-            return exc.HTTPNotFound(detail='No such output: %s'%output_name)
+            return exc.HTTPNotFound(detail='No such output: %s' % output_name)
         output = outputs[output_name]
+
+        # Get desired format
+        output_format = self.request.GET.get('format', output.default_format())
+        if not output_format in output.available_formats():
+            raise exc.HTTPNotFound(detail='Format %s not supported for %s'%(output_name, output_format()))
+
+        # Get the desired extension for that format
+        extension = output.available_formats()[output_format]['extension']
 
         # Render that object as a pkl and return
         return Response(
             content_type="application/force-download",
-            content_disposition='attachment; filename=%s.%s' % (output_name, 'pkl'),
-            body=pickle.dumps(output)
+            content_disposition='attachment; filename=%s.%s' % (output_name, extension),
+            body=output.render_output(output_format)
         )
 
     @view_config(route_name='tool_file')

@@ -28,6 +28,13 @@ class Artifact(EmbeddedDocument):
 
         return dict(raw=dict(extension='data', description='Raw value of the output, unformatted'))
 
+    def default_format(self):
+        """Default format for output
+
+        :return: string, default format"""
+
+        return 'raw'
+
     def render_output(self, target_format, **kwargs):
         """Handles turning the data into the required format
 
@@ -59,6 +66,9 @@ class PythonArtifact(Artifact):
 
         return output
 
+    def default_format(self):
+        return 'pkl'
+
     def set_object(self, x):
         self.object = pickle.dumps(x)
 
@@ -86,6 +96,9 @@ class PandasArtifact(PythonArtifact):
 
         return output
 
+    def default_format(self):
+        return 'excel'
+
     def render_output(self, target_format, **kwargs):
 
         # Get the pandas object
@@ -94,12 +107,12 @@ class PandasArtifact(PythonArtifact):
         if target_format == 'csv':
             return data.to_csv(index=False, **kwargs)
         elif target_format == 'excel':
-            fp, filename = mkstemp('xlsx')
+            fp, filename = mkstemp(suffix='.xlsx')
             data.to_excel(filename, index=False, **kwargs)
             output_data = open(filename, 'r').read()
             os.remove(filename)
             return output_data
-        elif target_format =='json':
+        elif target_format == 'json':
             return data.to_json(**kwargs)
         elif target_format == 'html':
             return data.to_html(index=False)

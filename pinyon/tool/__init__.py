@@ -224,7 +224,7 @@ class WorkflowTool(Document):
             :param save_results: boolean, whether to save results
             :param run_subsequent: boolean, whether to run subsequent tool
         Output:
-            :return: dict, result from the analysis tool
+            :return: dict, result from the tool as Artifact objects
         """
 
         # Clear output if needed
