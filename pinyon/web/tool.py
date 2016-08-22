@@ -78,7 +78,7 @@ class ToolViews:
         # Render into desired format
         data_artifact = res['data']
         output_data = data_artifact.render_output(data_format)
-        extension = data_format.available_formats()[data_format]['extension']
+        extension = data_artifact.available_formats()[data_format]['extension']
 
         # Send out the data in CSV format
         return Response(
@@ -265,7 +265,7 @@ class ToolViews:
         tools = [k for k,v in tools.iteritems() if isinstance(v, WorkflowTool)]
 
         return {
-            'tool': tools,
+            'tools': tools,
             'toolchain': toolchain,
             'errors': errors
         }
