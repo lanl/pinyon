@@ -1,6 +1,7 @@
 """Classes used to store results from processing steps, and facilitate converting them to different formats"""
 import cPickle as pickle
 from tempfile import mkstemp
+import json
 
 import os
 from mongoengine.document import EmbeddedDocument
@@ -118,3 +119,60 @@ class PandasArtifact(PythonArtifact):
             return data.to_html(index=False)
         else:
             return super(PandasArtifact, self).render_output(target_format, **kwargs)
+
+
+class BokehArtifact(Artifact):
+    """Stores a Bokeh model that can be output into HTML, or any other desired format"""
+
+    def available_formats(self):
+        output = super(BokehArtifact, self).available_formats()
+
+        output['html'] = dict(extension='html', description='An entire HTML page')
+        output['components'] = dict(extension='json', description='Constituent components of the plot. ' +
+                                                                  'JSON object with keys div and script')
+
+        # Raw is now
+        del output['raw']
+
+        return output
+
+    def set_object(self, plot):
+        """Given a Bokeh plot or layout, save the data needed to render it in HTML
+
+        :param plot: plot to be rendered"""
+        from bokeh.embed import components
+        script, div = components(plot)
+        self.object = json.dumps(dict(script=script, div=div))
+
+    def default_format(self):
+        return 'html'
+
+    def render_output(self, target_format, **kwargs):
+
+        if target_format == 'components':
+            return self.object
+        elif target_format == 'html':
+            data = json.loads(self.object)
+            return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>%s</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+
+    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.0.min.css" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.0.min.css" type="text/css" />
+    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.0.min.js"></script>
+</head>
+<body>
+    <div class='container'>
+    <p>%s</p>
+    %s
+    %s
+    </div>
+</body>
+            """%(self.name, self.description, data['div'], data['script'])
+        else:
+            super(BokehArtifact, self).render_output(target_format, **kwargs)

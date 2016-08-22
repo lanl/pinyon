@@ -105,17 +105,20 @@ class ToolViews:
 
         # Get desired format
         output_format = self.request.GET.get('format', output.default_format())
-        if not output_format in output.available_formats():
+        if output_format not in output.available_formats():
             raise exc.HTTPNotFound(detail='Format %s not supported for %s'%(output_name, output_format()))
 
         # Get the desired extension for that format
         extension = output.available_formats()[output_format]['extension']
 
         # Render that object as a pkl and return
+        if output_format == 'html':
+            return Response(output.render_output(output_format))
         return Response(
             content_type="application/force-download",
             content_disposition='attachment; filename=%s.%s' % (output_name, extension),
-            body=output.render_output(output_format)
+            body=output.render_output(output_format),
+            charset='UTF-8'
         )
 
     @view_config(route_name='tool_file')
@@ -135,7 +138,6 @@ class ToolViews:
             content_disposition='attachment; filename=%s_%s.%s'%(tool.name, file_label, file_extension),
             body=file_content
         )
-
 
     @view_config(route_name='tool_jupyter')
     def render_notebook(self):
