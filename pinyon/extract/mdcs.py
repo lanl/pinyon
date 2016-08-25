@@ -19,7 +19,7 @@ from periodictable import elements as pt_elements
 
 __author__ = 'Logan Ward'
 
-_ureg = UnitRegistry(autoconvert_offset_to_baseunit = True)
+_ureg = UnitRegistry(autoconvert_offset_to_baseunit=True)
 """Unit conversion tool"""
 
 

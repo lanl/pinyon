@@ -167,7 +167,8 @@ class HTMLDecisionTracker(WorkflowTool):
         output = dict()
         for dec_key, value in self.get_decisions().iteritems():
             print dec_key[0], entry_key
-            if dec_key[0] != entry_key: continue
+            if dec_key[0] != entry_key:
+                continue
 
             output[dec_key[1]] = value
 
@@ -260,7 +261,7 @@ class HTMLDecisionTracker(WorkflowTool):
             column = cell['column']
             key = (key, column)
 
-            # Get the decison notes
+            # Get the decisoin notes
             old_value = cell['original-value']
             new_value = cell.string.strip()
             decisionnotes = cell['decision-notes']
@@ -300,7 +301,7 @@ class HTMLDecisionTracker(WorkflowTool):
                     continue
 
             # Change the type, if needed
-            if isinstance(new_value, str):
+            if isinstance(new_value, unicode):
                 if new_value.lower() == "true":
                     new_value = True
                 elif new_value.lower() == "false":
