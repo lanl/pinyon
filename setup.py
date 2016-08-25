@@ -16,6 +16,7 @@ setup(
     install_requires=[
 	'bokeh',
 	'cornice',
+	'dill',
 	'jupyter',
         'mongoengine',
         'pandas',

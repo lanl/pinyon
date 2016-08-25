@@ -1,5 +1,5 @@
 """Classes used to store results from processing steps, and facilitate converting them to different formats"""
-import cPickle as pickle
+import dill as pickle
 from tempfile import mkstemp
 import json
 
