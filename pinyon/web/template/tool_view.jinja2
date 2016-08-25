@@ -72,7 +72,7 @@
             <table class="table">
                 <tr><th>Name</th><td>{{ tool.name }}</td></tr>
                 <tr><th>Type</th><td>{{ tool.__class__.__name__ }}</td></tr>
-                <tr><th>Description</th><td>{{ tool.description }}</td></tr>
+                <tr><th>Description</th><td>{{ tool.description | safe }}</td></tr>
                 <tr><th>Last Run</th><td>{{ tool.last_run }}</td></tr>
                 {% if tool.previous_step %}
                     <tr><th>Previous Step</th><td><a href="/tool/{{ tool.previous_step.id }}/view">{{ tool.previous_step.name }}</a></td></tr>
@@ -137,7 +137,7 @@
                     {% for s,v in tool.get_file_information().iteritems() %}
                         <tr>
                             <th>{{ s }}</th>
-                            <td>{{ v['description'] | string }}</td>
+                            <td>{{ v['description'] | string | safe }}</td>
                             <td><a class="btn btn-sm btn-primary" href="/tool/{{ name }}/file/{{ s }}">Download</a></td>
                         </tr>
                     {% endfor %}

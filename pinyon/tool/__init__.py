@@ -103,7 +103,7 @@ class WorkflowTool(Document):
         class EditForm(Form):
             name = wtfields.StringField('Tool Name', default=self.name,
                                         description='Simple name for this tool')
-            description = wtfields.StringField('Tool Description', default=self.description,
+            description = wtfields.TextAreaField('Tool Description', default=self.description,
                                                render_kw={'type': 'textarea'},
                                                description='Longer form description of what this tool does')
             previous_step = wtfields.SelectField('Previous Step', choices=previous_steps,
