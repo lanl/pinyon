@@ -180,15 +180,20 @@ class ToolViews:
 
         # Get the form result
         form = tool.get_form()(self.request.POST)
+        print "Form gotten"
 
         # Process it
-        if self.request.method == 'POST' and form.validate():
-            tool.process_form(form, self.request)
-            try:
-                tool.save()
-                return exc.HTTPFound(self.request.route_url('tool_view', id=name))
-            except Exception, e:
-                errors = e.message
+        if self.request.method == 'POST':
+            if form.validate():
+                try:
+                    tool.process_form(form, self.request)
+                    print "Processed"
+                    tool.save()
+                    return exc.HTTPFound(self.request.route_url('tool_view', id=name))
+                except Exception, e:
+                    errors = e.message
+            else:
+                errors = form.errors
 
         return {
             'name': name,
