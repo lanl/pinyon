@@ -19,7 +19,6 @@ def main(global_config, **settings):
     
     # Add in additional modules
     config.include('pyramid_jinja2')
-    config.include('cornice')
     
     # Add in static directories
     config.add_static_view(name='static', path='pinyon:web/static')

@@ -15,7 +15,6 @@ setup(
     license=license,
     install_requires=[
 	'bokeh',
-	'cornice',
 	'dill',
 	'jupyter',
         'mongoengine',
