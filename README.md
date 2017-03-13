@@ -9,3 +9,7 @@ or updating the models as more data is collect will be drastically simplified.
 
 - MongoDB
 - Python libraries listed in `requirements.txt`
+
+## Copyright and license
+
+Los Alamos National Security, LLC (LANS) owns the copyright to Pinyon, which it identifies internally as LA-CC 17-025. The license is BSD-ish with a "modifications must be indicated" clause. See LICENSE.md for the full text.
